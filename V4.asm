@@ -2,7 +2,7 @@
 .stack 9999
 .data
 ;==========Print Welcome Screen Messages
-	dotted1Mesg DB 13,10,"-----------------------------------------------------------------------------$"
+	dotted1Mesg DB 13,10,"------------------------------------------------------------------------$"
 	printWelcomeScreenMesg DB 13,10,"			WELCOME TO DLBank!$"
 
 ;==========Prompt Main Menu Options Messages
@@ -11,7 +11,6 @@
 	mainMenuOptionsMesg3 DB 13,10,"Enter 3 to close program$"
 	mainMenuOptionsMesg4 DB 13,10,"Enter your option: $"
 	invalidOptionMesg DB 13,10,"Invalid option$"
-	alertMesg DB 13,10,"Please enter only Y, y, N or n.$"
 
 ;==========Register Bank Account Module Messages
 	newAccNumMesg DB 13,10,"Your account number is $"
@@ -21,8 +20,8 @@
 
 ;==========Login Bank Account Module Messages
 	loginTooMuchMesg DB 13,10,"Wrong input(5 times). Please try again in 3 minutes$"
-	promptUserAccNumMsg DB 13,10,"Enter bank account: $"
-	promptUserPwMesg DB "Enter password: $"
+	promptUserAccNumMesg DB 13,10,"Enter bank account: $"
+	promptUserPwMesg DB 13,10,"Enter password: $"
 	invalidAccNumMesg DB 13,10,"Access Denied! (INVALID ACCOUNT NUMBER) $"
 	InvalidPwMesg DB 13,10,"Access Denied! (INVALID PASSWORD) $"
 	loginSuccessMesg DB 13,10,"Access Granted! $"
@@ -30,9 +29,26 @@
 ;==========Print User Bank Account Details Messages
 	dotted2Mesg DB 13,10,"=======$"
 	bankLogoMesg DB 13,10,"DL BANK$"
-	nameMesg DB 13,10,"Name: $"
-	balanceMsg DB 13,10,"Balance: RM$"
+	nameMesg DB 13,10,"Hello Mr/Ms $"
+    balanceMesg DB 13, 10, "Your balance is RM$"
 
+;=========Prompt Sub Menu Options Messages
+	subMenuOptionsMesg1 DB 13, 10, "Enter 0 to exit$"
+	subMenuOptionsMesg2 DB 13, 10, "Enter 1 to Deposit$"
+	subMenuOptionsMesg3 DB 13, 10, "Enter 2 to Withdrawal$"
+	subMenuOptionsMesg4 DB 13, 10, "Enter 3 to Transfer$"
+	subMenuOptionsMesg5 DB 13, 10, "Enter your option: $"
+	promptDepositAmountMesg DB 13, 10, "Enter deposit amount: $"
+	depositSuccessMesg DB 13, 10, "Deposit successfully!$"
+
+	promptWithdrawalAmountMesg DB 13, 10, "Enter withdrawal amount: $"
+	promptBankAccountMesg DB 13, 10, "Transfer to(Bank Account)?(Enter 0 back to menu):$"
+	promptTransferAmountMesg DB 13, 10, "Enter transfer amount: $"
+	promptNextTransactionMesg DB 13, 10, "Any other transaction?(Y/N)$"
+
+
+    
+    withdrawalSuccessMesg DB 13, 10, "Withdrawal successfully!$"
 
 	transferSuccessMesg DB 13,10,"Transfer successfully!$"
 	msg2 db 13, 10, "logout. thank you liangzai", 13, 10, '$'
@@ -45,16 +61,16 @@
 	countWdw db '0'
 	countTrf db '0'
 	logoutMsg DB 13,10,"Signed out. Thank you for using DLBank$"
-	errorMsg DB 13,10,"Please enter correct option$"
 
 
 ;==========All
+	invalidInputMesg DB 13, 10, "INVALID INPUT!$"
 	inputCount DB 0
-	
 
 ;==========Login Bank Account Module Varibles
 	accNumInput DB 35 dup('$')
 	pwInput DB 35 dup('$')
+	loginTrialCount DB 0
 
 ;==========User Varibles
 	userType DB 0
@@ -73,11 +89,10 @@
     transferAcc DB 35 dup('$')
 	transferTo DB ?
 
-	;=========================TRANSFER=========================	
+;=========================TRANSFER=========================	
 	transferInput DB 35 dup('$')
 
-	;======================DEPOSIT&WITHDRAWAL======================	
-
+;======================DEPOSIT&WITHDRAWAL======================	
 	amountInput DW 0, 0, 0, 0
 	amountInputConverted DW 0
 	amountInputCalculated DW 0
@@ -86,22 +101,7 @@
     multiplyLoopCount DB 0
     addToDecFactor DW 0
 
-;=========Prompt Sub Menu Options Messages
-	subMenuOptionsMesg1 DB 13, 10, "Enter 0 to exit$"
-	subMenuOptionsMesg2 DB 13, 10, "Enter 1 to Deposit$"
-	subMenuOptionsMesg3 DB 13, 10, "Enter 2 to Withdrawal$"
-	subMenuOptionsMesg4 DB 13, 10, "Enter 3 to Transfer$"
-	subMenuOptionsMesg5 DB 13, 10, "Enter the option: $"
-	promptDepositAmountMesg DB 13, 10, "Enter the deposit amount:$"
-	promptWithdrawalAmountMesg DB 13, 10, "Enter the withdrawal amount:$"
-	promptBankTypeMesg DB 13, 10, "Enter Bank Type:$"
-	promptBankAccountMesg DB 13, 10, "Transfer to(Bank Account)?(Enter 0 back to menu):$"
-	promptTransferAmountMesg DB 13, 10, "Enter the transfer amount:$"
-	promptNextTransactionMesg DB 13, 10, "Any other transaction?(Y/N)$"
-    depositSuccessMesg DB 13, 10, "Deposit successfully!$"
-    balanceMesg DB 13, 10, "Your balance: $"
-    invalidInputMesg DB 13, 10, "Invalid input$"
-    withdrawalSuccessMesg DB 13, 10, "Withdrawal successfully!$"
+
 
 ;======================MACRO LIST======================
 PRINTDECIMALPOINT MACRO
@@ -176,23 +176,20 @@ PRINTSTRING Macro Input
 endm
 
 .code
-assignToAx proc  ;;
-    cmp multiplyLoopCount, 0
-	je move1ToAx
-	jne move10ToAx
-	
-move1ToAx:
-    mov ax, 1
-    jmp afterAssignAx
-    
-move10ToAx:
-    mov ax, 10
-afterAssignAx:    	
-    ret
+assignToAx proc
+    	cmp multiplyLoopCount, 0
+		je move1ToAx
+		jne move10ToAx
+	move1ToAx:
+    	mov ax, 1
+    	jmp afterAssignAx
+	move10ToAx:
+    	mov ax, 10
+	afterAssignAx:    	
+    	ret
 assignToAx endp
 
-printCurrentUserBalance proc  ;;
-    NEWLINE
+printCurrentUserBalance proc
     cmp userType, 1
 	je printUser1Jumper
     PRINT4DIGIT user2Balance
@@ -233,102 +230,87 @@ addAxToBalance endp
 
 
 calculateFee proc
-    mov amountInputCalculated, 0
-    mov amountInputCalculatedDec, 0
-    push amountInputConverted
-    mov ax, amountInputConverted
-    mov bx, 10000
-    div bx
-    xchg dx, ax
-    mov bx, 1
-    mul bx
-    
-    mov amountInputCalculatedDec, ax
-    
-    pop amountInputCalculated 
-    
-    
-foundCost:     
-    cmp amountInputCalculatedDec, 1000
-    jge mov10000
-    cmp amountInputCalculatedDec, 100
-    jge mov1000
-    cmp amountInputCalculatedDec, 10
-    jge mov100
-    cmp amountInputCalculatedDec, 0
-    jge mov10
-
-mov10000:
-    mov addToDecFactor, 10000
-    jmp compareUserTypeSub
-mov1000:
-    mov addToDecFactor, 1000
-    jmp compareUserTypeSub
-mov100:
-    mov addToDecFactor, 100
-    jmp compareUserTypeSub
-mov10:
-    mov addToDecFactor, 10
-        
-compareUserTypeSub:
-    cmp userType, 1
-    jne proceedSub2
-
-    
-proceedSub:
-    mov ax, user1Balance
-    cmp ax, amountInputCalculated
-    jng invalidInputWithdrawalJmper1 ;if balance not enuf
-    je compareDecIfSame ;check decimal if before decimal is same
-    jmp doSub; if enuf for withdrawal
-
-compareDecIfSame:
-    mov ax, user1BalanceDec
-    cmp ax, amountInputCalculatedDec
-    jng invalidInputWithdrawalJmper1 ;not enuf balance
-takeBeforeDecimal:    
-    dec user1Balance ; take before decimal
-    mov ax, addToDecFactor
-    add user1BalanceDec, ax
-            
-doSub:
-    mov ax, amountInputCalculatedDec
-    cmp user1BalanceDec, ax
-    jng takeBeforeDecimal
-    mov ax, amountInputCalculated
-    sub user1Balance, ax
-    mov ax, amountInputCalculatedDec
-    sub user1BalanceDec, ax 
-    jmp returnCalculateFee
-
-proceedSub2:
-    mov ax, user2Balance
-    cmp ax, amountInputCalculated
-    jng invalidInputWithdrawalJmper1 ;if balance not enuf
-    je compareDecIfSame ;check decimal if before decimal is same
-    jmp doSub2; if enuf for withdrawal
-
-compareDecIfSame2:
-    mov ax, user2BalanceDec
-    cmp ax, amountInputCalculatedDec
-    jng invalidInputWithdrawalJmper1 ;not enuf balance
-takeBeforeDecimal2:    
-    dec user2Balance ; take before decimal
-    mov ax, addToDecFactor
-    add user2BalanceDec, ax
-            
-doSub2:
-    mov ax, amountInputCalculatedDec
-    cmp user2BalanceDec, ax
-    jng takeBeforeDecimal
-    mov ax, amountInputCalculated
-    sub user2Balance, ax
-    mov ax, amountInputCalculatedDec
-    sub user2BalanceDec, ax 
-    
-    
-returnCalculateFee:  
-    ret    
+		mov amountInputCalculated, 0
+		mov amountInputCalculatedDec, 0
+		push amountInputConverted
+		mov ax, amountInputConverted
+		mov bx, 10000
+		div bx
+		xchg dx, ax
+		mov bx, 1
+		mul bx
+		mov amountInputCalculatedDec, ax
+		pop amountInputCalculated 
+	foundCost:     
+		cmp amountInputCalculatedDec, 1000
+		jge mov10000
+		cmp amountInputCalculatedDec, 100
+		jge mov1000
+		cmp amountInputCalculatedDec, 10
+		jge mov100
+		cmp amountInputCalculatedDec, 0
+		jge mov10
+	mov10000:
+		mov addToDecFactor, 10000
+		jmp compareUserTypeSub
+	mov1000:
+		mov addToDecFactor, 1000
+		jmp compareUserTypeSub
+	mov100:
+		mov addToDecFactor, 100
+		jmp compareUserTypeSub
+	mov10:
+		mov addToDecFactor, 10  
+	compareUserTypeSub:
+		cmp userType, 1
+		jne proceedSub2
+	proceedSub:
+		mov ax, user1Balance
+		cmp ax, amountInputCalculated
+		jng invalidInputWithdrawalJmper1 ;if balance not enuf
+		je compareDecIfSame ;check decimal if before decimal is same
+		jmp doSub; if enuf for withdrawal
+	compareDecIfSame:
+		mov ax, user1BalanceDec
+		cmp ax, amountInputCalculatedDec
+		jng invalidInputWithdrawalJmper1 ;not enuf balance
+	takeBeforeDecimal:    
+		dec user1Balance ; take before decimal
+		mov ax, addToDecFactor
+		add user1BalanceDec, ax       
+	doSub:
+		mov ax, amountInputCalculatedDec
+		cmp user1BalanceDec, ax
+		jng takeBeforeDecimal
+		mov ax, amountInputCalculated
+		sub user1Balance, ax
+		mov ax, amountInputCalculatedDec
+		sub user1BalanceDec, ax 
+		jmp returnCalculateFee
+	proceedSub2:
+		mov ax, user2Balance
+		cmp ax, amountInputCalculated
+		jng invalidInputWithdrawalJmper1 ;if balance not enuf
+		je compareDecIfSame ;check decimal if before decimal is same
+		jmp doSub2; if enuf for withdrawal
+	compareDecIfSame2:
+		mov ax, user2BalanceDec
+		cmp ax, amountInputCalculatedDec
+		jng invalidInputWithdrawalJmper1 ;not enuf balance
+	takeBeforeDecimal2:    
+		dec user2Balance ; take before decimal
+		mov ax, addToDecFactor
+		add user2BalanceDec, ax     
+	doSub2:
+		mov ax, amountInputCalculatedDec
+		cmp user2BalanceDec, ax
+		jng takeBeforeDecimal
+		mov ax, amountInputCalculated
+		sub user2Balance, ax
+		mov ax, amountInputCalculatedDec
+		sub user2BalanceDec, ax 
+	returnCalculateFee:  
+		ret    
 calculateFee endp    
 
 
@@ -336,11 +318,11 @@ calculateFee endp
 
 ;======================withdrawalJumper======================
 withdrawalJmper1:
-	jmp withdrawal
+	jmp withdrawalModule
 transferJmper1:
-	jmp transfer
+	jmp transferModule
 invalidInputWithdrawalJmper1:
-    jmp	invalidInputWithdrawal
+    jmp	invalidWithdrawalAmountInput
 ;============================================================
 
 
@@ -372,7 +354,6 @@ PromptMainMenuOptions:
 	cmp al,'3'
 	je exit
 	PRINTSTRING invalidOptionMesg
-	PRINTSTRING alertMesg
 	NEWLINE
 	jmp PromptMainMenuOptions
 
@@ -422,9 +403,8 @@ loginBankAccountModule:
 	jmp printWelcomeScreen
 ;====================Prompt User Account Number
 promptUserAccNum:
-	PRINTSTRING promptUserAccNumMsg
+	PRINTSTRING promptUserAccNumMesg
 	lea si,accNumInput 
-	jmp loginPrompt
 scanAccNumInput:
 	SCANCHAR
 	cmp al,13
@@ -432,7 +412,7 @@ scanAccNumInput:
 	mov [si],al
 	inc si
 	inc inputCount
-	jmp loginPrompt
+	jmp scanAccNumInput
 finishScanAccNumInput:
 	mov al,'$'
     mov [si], al
@@ -522,7 +502,7 @@ loginSuccess:
 	PRINTSTRING toContinueMesg
 	SCANCHAR
 
-;==========Print User Bank Account Details Module
+;==========Print User Bank Account Details
 	cmp userType,1
 	je showUser1BankAccDetails
 	cmp userType,2
@@ -533,22 +513,29 @@ showUser1BankAccDetails:
 	PRINTSTRING dotted2Mesg
 	PRINTSTRING nameMesg
 	PRINTSTRING user1Name
-	PRINTSTRING balanceMsg
-	PRINT4DIGIT user1Balance
-	PRINTDECIMALPOINT
-	PRINT4DIGIT user1BalanceDec
+	PRINTSTRING balanceMesg
+	call printCurrentUserBalance
 	NEWLINE
 	jmp promptSubMenuOptions
 showUser2BankAccDetails:
 	PRINTSTRING dotted2Mesg
 	PRINTSTRING bankLogoMesg
 	PRINTSTRING dotted2Mesg
-	PRINTSTRING nameMsg
+	PRINTSTRING nameMesg
 	PRINTSTRING user2Name
-	PRINTSTRING balanceMsg
-	PRINTRINGGITBALANCE user2Balance
-	PRINTSENBALANCE user2BalanceDec
+	PRINTSTRING balanceMesg
+	call printCurrentUserBalance
 	NEWLINE
+	jmp promptSubMenuOptions
+
+;====================================Jumper====================================
+withdrawalJmper:
+	jmp withdrawalModule
+transferJmper:
+	jmp transferModule
+invalidInputWithdrawalJmper:
+    jmp	invalidWithdrawalAmountInput
+;====================================Jumper====================================
 
 ;=========Prompt Sub Menu Options
 promptSubMenuOptions:
@@ -556,74 +543,59 @@ promptSubMenuOptions:
 	mov inputCount, 0
 	mov amountInputConverted, 0
 	mov amountInputCalculated, 0
-	mov amountInputCalculatedDec, 0 
+	mov amountInputCalculatedDec, 0
+;==================Print Sub Menu Options
 	PRINTSTRING subMenuOptionsMesg1
 	PRINTSTRING subMenuOptionsMesg2
 	PRINTSTRING subMenuOptionsMesg3
 	PRINTSTRING subMenuOptionsMesg4
 	PRINTSTRING subMenuOptionsMesg5
+;==================Input Sub Menu Options
 	SCANCHAR
 	cmp al, '0'
-	je quitJumper2
+	je exit
 	cmp al, '1'
-	je deposit
+	je depositModule
 	cmp al, '2'
-	je withdrawalJmper
+	je withdrawalModule
 	cmp al, '3'
-	je transferJmper
-	jmp menu
+	je transferModule
+	jmp promptSubMenuOptions
 
-quitJumper2:
-	jmp quit
-	
-;======================withdrawalJumper======================
-withdrawalJmper:
-	jmp withdrawal
-transferJmper:
-	jmp transfer
-invalidInputWithdrawalJmper:
-    jmp	invalidInputWithdrawal
-;============================================================
-
-;======================depositModule======================
-deposit:
+;==========Deposit Module
+depositModule:
     inc countDep
 	PRINTSTRING promptDepositAmountMesg
 	lea si, amountInput
     mov multiplyLoopCount, 0
 	mov inputCount, 0
-promptDepositAmountInput:
+scanDepositAmountInput:
 	SCANCHAR
 	mov ah, 0
 	cmp al,13
-	je proceedDeposit
+	je finishScanDepositAmountInput
 	inc inputCount
 	sub ax, 30h
 	mov [si],ax
 	add si, 2
-	jmp promptDepositAmountInput	
-
-proceedDeposit:
+	jmp scanDepositAmountInput	
+finishScanDepositAmountInput:
     cmp inputCount, 0
-    je invalidInputDeposit
+    je invalidDepositAmountInput
     cmp inputCount, 4
-    jg invalidInputDeposit
-	mov cx, inputCount
+    jg invalidDepositAmountInput
+	mov cl, inputCount
+	mov ch, 0
 	mov bx, 1
-    jmp multiplyDeposit
-    
-invalidInputDeposit:
+    jmp multiplyDepositAmountInput
+invalidDepositAmountInput:
     PRINTSTRING invalidInputMesg
-    jmp deposit
-    
-
-
-multiplyDeposit:
-    lea si, amountInput
+    jmp depositModule
+multiplyDepositAmountInput:
 	mov tempIndex, cx
 	dec tempIndex
-	
-    push bx ; indexing correction
+    lea si, amountInput
+    push bx
     mov ax, tempIndex
     mov bx, 2
     mul bx
@@ -638,64 +610,53 @@ multiplyDeposit:
 	mul bx
 	call addAxToBalance
 	inc multiplyLoopCount
-	loop multiplyDeposit
-	
-	NEWLINE
+	loop multiplyDepositAmountInput
 	PRINTSTRING depositSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
-    NEWLINE
-    jmp menu
+    jmp promptSubMenuOptions
 
-;======================withdrawalModule======================	
-	
-withdrawal:
+;==========Withdrawal Module
+withdrawalModule:
     inc countWdw
 	PRINTSTRING promptWithdrawalAmountMesg
 	lea si, amountInput
     mov multiplyLoopCount, 0
 	mov inputCount, 0
 	mov amountInputConverted, 0
-
-promptWithdrawalAmountInput:
+scanWithdrawalAmountInput:
 	SCANCHAR
 	mov ah, 0
 	cmp al,13
-	je proceedWithdrawal
+	je finishScanWithdrawalAmountInput
 	inc inputCount
 	sub ax, 30h
 	mov [si],ax
 	add si, 2
-	jmp promptWithdrawalAmountInput	
-
-proceedWithdrawal:
+	jmp scanWithdrawalAmountInput	
+finishScanWithdrawalAmountInput:
     cmp inputCount, 0
-    je invalidInputWithdrawal
+    je invalidWithdrawalAmountInput
     cmp inputCount, 4
-    jg invalidInputWithdrawal
-	mov cx, inputCount
+    jg invalidWithdrawalAmountInput
+	mov cl, inputCount
+	mov ch, 0
 	mov bx, 1
-    jmp multiplyWithdrawal
-    
-invalidInputWithdrawal:
+    jmp multiplyWithdrawalAmountInput
+invalidWithdrawalAmountInput:
     PRINTSTRING invalidInputMesg
-    jmp withdrawal
-
-
-multiplyWithdrawal:
+    jmp withdrawalModule
+multiplyWithdrawalAmountInput:
     lea si, amountInput
 	mov tempIndex, cx
 	dec tempIndex
-	
-    push bx ; indexing correction
+    push bx
     mov ax, tempIndex
     mov bx, 2
     mul bx
     pop bx
     mov tempIndex, ax
-    
 	call assignToAx
-	
 	mul bx
 	mov bx, ax
 	mov ax, tempIndex
@@ -704,27 +665,18 @@ multiplyWithdrawal:
 	mul bx
 	add amountInputConverted, ax
 	inc multiplyLoopCount
-	loop multiplyWithdrawal
-	
+	loop multiplyWithdrawalAmountInput
 	call calculateFee
-		
-	NEWLINE
 	PRINTSTRING withdrawalSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
-    NEWLINE
-    jmp menu
+    jmp promptSubMenuOptions
 	
-	
-
-;======================transferModule======================
-    transfer:
-    
-    promptBankAccount:
+;==========Transfer Module
+transferModule:
 	PRINTSTRING promptBankAccountMesg
 	lea si, transferInput
-	
-    promptBankAccountInput:
+promptBankAccountInput:
 	SCANCHAR
 	cmp al,13
 	jne contPromptBankAccountInputJumper
@@ -733,20 +685,16 @@ multiplyWithdrawal:
 	lea si, transferInput
 	mov al, [si]
 	cmp al, '0'
-	je menuJumper1
-	cmpCurrentUser:
+	je promptSubMenuOptions
+cmpCurrentUser:
 	cmp userType, 1
 	je checkTransferToMyselfUser1
 	cmp userType, 2
 	je checkTransferToMyselfUser2
 	jmp cmpUser1
-
-	contPromptBankAccountInputJumper:
+contPromptBankAccountInputJumper:
 	jmp contPromptBankAccountInput
-
-	menuJumper1:
-	jmp menu
-	checkTransferToMyselfUser1:
+checkTransferToMyselfUser1:
 	lea si, transferInput
 	lea di, user1AccNum
 	mov al, [si]
@@ -768,8 +716,7 @@ multiplyWithdrawal:
     cmp al, [di]
     jne cmpUser1
     jmp invalidBankAccountInput
-    
-    checkTransferToMyselfUser2:
+checkTransferToMyselfUser2:
 	lea si, transferInput
 	lea di, user2AccNum
 	mov al, [si]
@@ -791,8 +738,7 @@ multiplyWithdrawal:
     cmp al, [di]
     jne cmpUser1
     jmp invalidBankAccountInput
-	
-	cmpUser1:
+cmpUser1:
     lea si, transferInput
     lea di, user1AccNum
     mov al, [si]
@@ -815,8 +761,7 @@ multiplyWithdrawal:
     jne cmpUser2
     mov transferTo, 1
     jmp promptTransferAmount
-    
-    cmpUser2:
+cmpUser2:
     lea si, transferInput
     lea di, user2AccNum
     mov al, [si]
@@ -839,22 +784,18 @@ multiplyWithdrawal:
     jne invalidBankAccountInput
     mov transferTo, 2
 	jmp promptTransferAmount 
-	
-    contPromptBankAccountInput:
+contPromptBankAccountInput:
 	mov [si],al
 	inc si
 	jmp promptBankAccountInput
-
-    invalidBankAccountInput:
+invalidBankAccountInput:
     PRINTSTRING invalidInputMesg
-    jmp promptBankAccount
-
-    promptTransferAmount:
+    jmp promptBankAccountInput
+promptTransferAmount:
 	PRINTSTRING promptTransferAmountMesg
 	lea si, transferInput
 	mov inputCount, 0
-	
-    promptTransferAmountInput:
+promptTransferAmountInput:
 	SCANCHAR
 	cmp al,13
 	jne contPromptTransferAmountInput
@@ -864,20 +805,18 @@ multiplyWithdrawal:
 	je invalidInputTransfer
 	cmp inputCount,4
 	jg invalidInputTransfer
-	mov cx, inputCount
+	mov cl, inputCount
+	mov ch, 0
     jmp multiplyTransfer
-    
-    contPromptTransferAmountInput:
+contPromptTransferAmountInput:
 	mov [si],al
 	inc si
 	inc inputCount
 	jmp promptTransferAmountInput
-	
-    invalidInputTransfer:
+invalidInputTransfer:
     PRINTSTRING invalidInputMesg
     jmp promptTransferAmount
-    
-    multiplyTransfer:
+multiplyTransfer:
     lea si, transferInput
     mov ax, 0
     mov dx, 0
@@ -889,32 +828,28 @@ multiplyWithdrawal:
     je two
     cmp cx, 1
     je one
-    
-    four:
+four:
     mov dl, [si]
     add ax, dx
     sub ax, 30h
     mov bx, 10
     mul bx
     inc si
-    
-    three:
+three:
     mov dl, [si]
     add ax, dx
     sub ax, 30h
     mov bx, 10
     mul bx
     inc si
-    
-    two:
+two:
     mov dl, [si]
     add ax, dx
     sub ax, 30h
     mov bx, 10
     mul bx
     inc si
-    
-    one:
+one:
     mov dl, [si]
     add ax, dx
     sub ax, 30h
@@ -923,28 +858,23 @@ multiplyWithdrawal:
     je deductFromCurrentUser1
     cmp userType, 2
     je deductFromCurrentUser2Jumper
-    
-    deductFromCurrentUser1:
+deductFromCurrentUser1:
     cmp ax, user1Balance
     jg invalidInputTransfer
     je compareDecimal1
     jmp validToTransfer1
-
-	deductFromCurrentUser2Jumper:
+deductFromCurrentUser2Jumper:
 	jmp deductFromCurrentUser2
-    
-	invalidInputTransferJumper2:
+invalidInputTransferJumper2:
 	jmp invalidInputTransfer
-
-    compareDecimal1:
+compareDecimal1:
     mov ax, amountInputConverted
     mov dx, 0 
 	mov bx, 10000
 	div bx
 	cmp dx, user1BalanceDec
 	jg invalidInputTransferJumper2
-	
-    validToTransfer1:
+validToTransfer1:
     mov ax, amountInputConverted
     mov dx, 0
     sub user1Balance, ax 
@@ -954,8 +884,7 @@ multiplyWithdrawal:
 	jge noNeedBorrow1
     sub user2Balance, 1
     add user1BalanceDec, 10000
-    
-    noNeedBorrow1: 
+noNeedBorrow1: 
 	sub user1BalanceDec, dx	
 	NEWLINE
 	PRINTSTRING transferSuccessMesg
@@ -965,27 +894,21 @@ multiplyWithdrawal:
     PRINTDECIMALPOINT
     PRINT4DIGIT user1BalanceDec
 	jmp finishDeductFromCurrentUser
-
-	invalidInputTransferJumper:
+invalidInputTransferJumper:
 	jmp invalidInputTransfer
-
-
-
-    deductFromCurrentUser2:
+deductFromCurrentUser2:
     cmp ax, user2Balance
     jg invalidInputTransferJumper
     je compareDecimal2
     jmp validToTransfer2
-
-    compareDecimal2:
+compareDecimal2:
     mov ax, amountInputConverted
     mov dx, 0 
 	mov bx, 10000
 	div bx
 	cmp dx, user2BalanceDec
 	jg invalidInputTransferJumper
-
-    validToTransfer2:
+validToTransfer2:
     mov ax, amountInputConverted
     mov dx, 0
     sub user2Balance, ax 
@@ -995,8 +918,7 @@ multiplyWithdrawal:
 	jge noNeedBorrow2
     sub user1Balance, 1
     add user2BalanceDec, 10000
-    
-    noNeedBorrow2: 
+noNeedBorrow2: 
 	sub user2BalanceDec, dx	
 	NEWLINE
 	PRINTSTRING transferSuccessMesg
@@ -1007,24 +929,20 @@ multiplyWithdrawal:
     PRINT4DIGIT user2BalanceDec
     NEWLINE
 	jmp finishDeductFromCurrentUser    
-    
-    finishDeductFromCurrentUser:    
+finishDeductFromCurrentUser:    
     cmp transferTo, 1
     je transferToUser1
     cmp transferTo, 2
     je transferToUser2
-    
-    transferToUser1:
+transferToUser1:
     mov ax, amountInputConverted
     add user1Balance, ax
     jmp finishTransfer
-    
-    transferToUser2:
+transferToUser2:
     mov ax, amountInputConverted
     add user2Balance, ax
     jmp finishTransfer
-    
-    finishTransfer:
+finishTransfer:
     inc countTrf
     NEWLINE
 
@@ -1035,56 +953,34 @@ multiplyWithdrawal:
 	NEWLINE
 	SCANCHAR
 	cmp al, 'y'
-	je menuJumper
+	je promptSubMenuOptions
 	cmp al, 'Y'
-	je menuJumper
+	je promptSubMenuOptions
 	cmp al, 'n'
-	je quit
+	je logout
 	cmp al, 'N'
-	je quit
+	je logout
 	jmp nextTransaction
-
-menuJumper:
-	jmp menu
-
-exit2:
-	mov ah,09h
-	mov dx,offset accNumInput
-	int 21h
-		
-
-quit:
-    NEWLINE
+logout:
 	PRINTSTRING logoutMsg
-	jmp PMPT
-
-quitAttemptOverflow:
-    jmp LOGOUT
-
-
-;==================user defined function=======================
-optionPromptJmp1:
-	jmp optionPromptJmp2
-
-PMPT:	
+	jmp printWelcomeScreen	
+exit:
     lea dx, msg3
 	mov ah, 09h
 	int 21h
-	mov ah, 01h	;read input
+	mov ah, 01h
 	int 21h
-	JMP CMPARE
-	
-CMPARE:	cmp al, 59h
-	JE optionPromptJmp1
+	cmp al, 59h
+	je printWelcomeScreen
 	cmp al, 79h
-	JE optionPromptJmp1	
+	je printWelcomeScreen	
 	cmp al, 4eh
-	JE SUMM
+	je summary
 	cmp al, 6eh
-	JE SUMM
-	JMP OTHER
-
-SUMM:	lea dx, msg5
+	je summary
+	jmp other
+summary:	
+	lea dx, msg5
 	mov ah, 09h
 	int 21h
 	mov ah, 02h
@@ -1102,15 +998,13 @@ SUMM:	lea dx, msg5
 	mov ah, 02h
 	mov dl, countTrf
 	int 21h
-	JMP LOGOUT
-
-
-OTHER:	lea dx, errMsg
+	jmp closeProgram
+other:	
+	lea dx, invalidInputMesg
 	mov ah, 09h
 	int 21h
-	JMP PMPT
-
-LOGOUT:	
+	jmp exit
+closeProgram:	
     lea dx, msg2
 	mov ah, 09h
 	int 21h
