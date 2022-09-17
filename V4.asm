@@ -20,8 +20,17 @@
 	doneRegisterMesg DB 13,10,"Your account has been created, Welcome! $"
 	toContinueMesg DB 13,10,"Press any button to continue...$"
 
+;==========Login Bank Account Module Messages
+	loginTooMuchMesg DB 13,10,"Wrong input(5 times). Please try again in 3 minutes$"
+	promptUserAccNumMsg DB 13,10,"Enter bank account: $"
+	promptUserPwMesg DB "Enter password: $"
 
-	accountCreated DB 13,10,"Account created!$"
+	logoutMsg DB 13,10,"Signed out. Thank you for using DLBank$"
+	accessYes DB 13,10,"Access Granted! $"
+	accessNo DB 13,10,"Access Denied! (WRONG ACCOUNT NUMBER) $"
+	accessNoPW DB 13,10,"Access Denied! (WRONG PASSWORD) $"
+	errorMsg DB 13,10,"Please enter correct option$"
+
 
 ;==========dk what 7
 	nameMsg DB 13,10,"Name: $"
@@ -39,45 +48,32 @@
 	countWdw db '0'
 	countTrf db '0'
 
-;======================LOGIN LOGOUT MESSAGE======================
-	promptUserMsg DB 13,10,"Enter bank account: $"
-	promptPWMsg DB "Enter password: $"
-	logoutMsg DB 13,10,"Signed out. Thank you for using DLBank$"
-	accessYes DB 13,10,"Access Granted! $"
-	accessNo DB 13,10,"Access Denied! (WRONG ACCOUNT NUMBER) $"
-	accessNoPW DB 13,10,"Access Denied! (WRONG PASSWORD) $"
-	errorMsg DB 13,10,"Please enter correct option$"
-	tooMuchMsg DB 13,10,"Wrong input(5 times). Please try again in 3 minutes$"
 
 
+;==========All
+	inputCount DB 0
 
-;=========================USER=========================
-	inUser DB 5 dup('$')
-	inPw DB 35 dup('$')
+;==========User 
+	accNumInput DB 5 dup('$')
+	pwInput DB 35 dup('$')
+	
+
 	regUser DB 5 dup('$')
 	regPW DB 35 dup('$')
-	loginEnterCount DB 0
-	loginTrial DB 0
-
-
+	loginTrialCount DB 0
 	user1AccNum DB "8866$"
 	user2AccNum DB 6 dup('$')
-
 	userType DB ?
-
 	user1Pw DB "aaaa",'$'
 	user2Pw DB 35 dup('$')
-
 	usersBalanceIndex DW userBalance1
 	userBalance1 DW 9420
 	userSenBalance1 DW 5000
 	userBalance2 DW 6688
 	userSenBalance2 DW 8500
-
 	usersNameIndex DW name1
 	name1 DB "Chun Yuan GieGie$"
 	name2 DB "Robert Low$"
-
     transferAcc DB 35 dup('$')
 	transferTo DB ?
 
@@ -90,7 +86,6 @@
 	amountInputConverted DW 0
 	amountInputCalculated DW 0
 	amountInputCalculatedDec DW 0
-	inputCount DW 0
 	tempIndex DW ?
     multiplyLoopCount DB 0
     addToDecFactor DW 0
@@ -481,6 +476,7 @@ assignUser2AccNum:
 	inc al
 	mov [si+3],al
 	PRINTSTRING user2AccNum
+
 ;====================Prompt New Account Password
 	PRINTSTRING promptNewAccPwMesg
 	lea si, user2Pw
@@ -500,87 +496,82 @@ finishAssignUser2Pw:
 	SCANCHAR
     jmp printWelcomeScreen
 
-;==========Jumper
+;******************************Jumper
 loginJumper2:
 	jmp login
 quitJumper:
 	jmp quit
-;==========Login Bank Account Module==================
-login:
-	cmp loginTrial,5
-	je tooMuch
-	PRINTSTRING promptUserMsg
-	lea si,inUser 
-	jmp loginPrompt
 
-loginPrompt:
+;==========Login Bank Account Module
+loginBankAccountModule:
+	cmp loginTrialCount,5
+	jne promptUserAccNum
+	PRINTSTRING loginTooMuchMesg
+	NEWLINE
+	jmp printWelcomeScreen
+;====================Prompt User Account Number
+promptUserAccNum:
+	PRINTSTRING promptUserAccNumMsg
+	lea si,accNumInput 
+	jmp loginPrompt
+scanAccNumInput:
 	SCANCHAR
 	cmp al,13
-	je reset
+	je finishScanAccNumInput
 	mov [si],al
 	inc si
-	inc loginEnterCount
+	inc inputCount
 	jmp loginPrompt
-
-reset:
+finishScanAccNumInput:
 	mov al,'$'
     mov [si], al
-	lea si,inUser
+	cmp inputCount, 0
+	je printLoginFailedJumper
+;====================Check Account Number Input
+	lea si,accNumInput
 	lea di,user1AccNum
-	jmp checkAcc
-
-checkAcc:
+checkWithUser1AccNum:
 	mov al,[di]
 	mov bl,[si]
-	cmp loginEnterCount, 0
-	je loginFailedJumper
+	cmp al,bl
+	jne finishCheckWithUser1AccNum
 	cmp al,'$'
 	je setUserType1
-	cmp al,bl
-	jne reset2
 	inc si
 	inc di
-	jmp checkAcc
-
-reset2:
-	lea si,inUser
+	jmp checkWithUser1AccNum
+finishCheckWithUser1AccNum:
+	lea si,accNumInput
 	lea di,user2AccNum
-	jmp check2
-
-check2:
+checkWithUser2AccNum:
 	mov al,[di]
 	mov bl,[si]
+	cmp al,bl
+	jne printLoginFailedJumper
 	cmp al,'$'
 	je setUserType2
-	cmp al,bl
-	jne loginFailedJumper
 	inc si
 	inc di
-	jmp check2
+	jmp checkWithUser2AccNum
 
+;******************************Jumper
 loginJumper:
 	jmp login
+printLoginFailedJumper:
+	jmp printLoginFailed
 
-tooMuch:
-	PRINTSTRING tooMuchMsg
-	jmp quit
-
-loginFailedJumper:
-	jmp loginFailed
-
-;==================login bank password==================
+;==========Set Current User Type
 setUserType1:
     mov userType, 1
-    jmp proceedLoginPW
-    
+    jmp promptUserPw
 setUserType2:
     mov userType, 2
-    
-proceedLoginPW:
-    NEWLINE
-    PRINTSTRING promptPWMsg
-	lea si,inPw
-	mov loginEnterCount,0
+
+;==========Prompt User Password
+promptUserPw:
+    PRINTSTRING promptUserPwMesg
+	lea si,pwInput
+	mov inputCount,0
     cmp userType, 1
     jne loginPW2
 
@@ -597,20 +588,20 @@ loginPWPrompt:
 	je resetPW
 	mov [si],al
 	inc si
-	inc loginEnterCount
+	inc inputCount
 	jmp loginPWPrompt
 
 resetPW:
 	mov al,'$'
     mov [si], al
-	lea si,inPw
+	lea si,pwInput
 	jmp checkPW
 
 checkPW:
 	mov al,[di]
 	mov bl,[si]
-	cmp loginEnterCount, 0
-	je loginFailed
+	cmp inputCount, 0
+	je printLoginFailed
 	cmp al,'$'
 	je loginSuccess
 	cmp al,bl
@@ -621,7 +612,7 @@ checkPW:
 
 exit:
 	mov ah,09h
-	mov dx,offset inUser
+	mov dx,offset accNumInput
 	int 21h
 
 loginSuccess:
@@ -631,15 +622,15 @@ loginSuccess:
 	NEWLINE
 	jmp checkBankDetails 
 
-loginFailed:
+printLoginFailed:
 	PRINTSTRING accessNo
-	mov loginEnterCount, 0
-	inc loginTrial
+	mov inputCount, 0
+	inc loginTrialCount
 	jmp login
 
 loginFailedPW:
 	PRINTSTRING accessNoPW
-	mov loginEnterCount, 0
+	mov inputCount, 0
 	jmp login 
 
 checkBankDetails:
@@ -1174,7 +1165,7 @@ menuJumper:
 
 exit2:
 	mov ah,09h
-	mov dx,offset inUser
+	mov dx,offset accNumInput
 	int 21h
 		
 
