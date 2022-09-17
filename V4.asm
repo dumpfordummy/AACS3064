@@ -2,18 +2,25 @@
 .stack 9999
 .data
 ;======================MAIN MENU MESSAGE======================
+	printWelcomeScreenMesg1 DB 13,10,"-----------------------------------------------------------------------------$"
+	printWelcomeScreenMesg2 DB 13,10,"			WELCOME TO DLBank!$"
+	printWelcomeScreenMesg3 DB 13,10,"-----------------------------------------------------------------------------$"
+
+	mainMenuOptionsMesg1 DB 13,10,"Enter 1 to register$"
+	mainMenuOptionsMesg2 DB 13,10,"Enter 2 to login$"
+	mainMenuOptionsMesg3 DB 13,10,"Enter 3 to exit$"
+	mainMenuOptionsMesg4 DB 13,10,"Option: $"
+
+	invalidOptionMesg DB 13,10,"Invalid option$"
+	alertMesg db 13, 10, "Please enter only Y, y, N or n.", 13, 10, '$'
+
+
+
+
 	nameMsg DB 13,10,"Name: $"
 	balanceMsg DB 13,10,"Balance: RM $"
-	dotted DB 13,10,"-----------------------------------------------------------------------------$"
 	dottedV2 DB 13,10,"=======$"
-	welcomeMsg DB 13,10,"			WELCOME TO DLBank!$"
 	bankLogo DB 13,10,"DL BANK$"
-	menuMsg DB 13,10,"Enter 1 to register$"
-	menuMsg2 DB 13,10,"Enter 2 to login$"
-	menuMsg3 DB 13,10,"Enter 3 to exit$"
-	menuMsg4 DB 13,10,"Option: $"
-	invalidMsg DB 13,10,"Invalid option$"
-	errMsg db 13, 10, "Please enter only Y, y, N or n.", 13, 10, '$'
 	transferSuccessMesg DB 13,10,"Transfer successfully!$"
 	msg2 db 13, 10, "logout. thank you liangzai", 13, 10, '$'
 	msg3 db 13, 10, "Do you wish to continue? (Y/N)", 13, 10, '$'
@@ -163,7 +170,7 @@ endm
 	int 21H
 	endm
 
-	INPUTOPTION Macro
+	SCANCHAR Macro
 	mov ah,01h
 	int 21h
 	endm
@@ -423,40 +430,38 @@ invalidInputWithdrawalJmper1:
 
 
 
-
+;==========Main Program
 main proc
 	mov ax,@data
 	mov ds,ax
 
-;================print welcome and main menu================
-welcome:
-	PRINTSTRING dotted
-	PRINTSTRING welcomeMsg
-	PRINTSTRING dotted
+;==========Print Welcome Screen
+printWelcomeScreen:
+	PRINTSTRING printWelcomeScreenMesg1
+	PRINTSTRING printWelcomeScreenMesg2
+	PRINTSTRING printWelcomeScreenMesg3
 
-optionPrompt:
-    NEWLINE
-	PRINTSTRING menuMsg
-	PRINTSTRING menuMsg2
-	PRINTSTRING menuMsg3
-	PRINTSTRING menuMsg4
-
-	INPUTOPTION
+;==========Prompt Main Menu Options
+PromptMainMenuOptions:
+;====================Print Main Menu Options
+	PRINTSTRING mainMenuOptionsMesg1
+	PRINTSTRING mainMenuOptionsMesg2
+	PRINTSTRING mainMenuOptionsMesg3
+	PRINTSTRING mainMenuOptionsMesg4
+;====================Input Main Menu Options
+	SCANCHAR
 	cmp al,'1'
 	je createAcc
-
 	cmp al,'2'
 	je loginJumper2
-
 	cmp al,'3'
 	je quitJumper
-
-	PRINTSTRING invalidMsg
-	PRINTSTRING errorMsg
+	PRINTSTRING invalidOptionMesg
+	PRINTSTRING alertMesg
 	NEWLINE
-	jmp optionPrompt
+	jmp PromptMainMenuOptions
 
-;==================register bank account==================
+;==========Register Bank Account
 createAcc: 
 	PRINTSTRING newAccMsg
 	lea si,user1
@@ -486,7 +491,7 @@ quitJumper:
 	jmp quit
 
 createPW:
-	INPUTOPTION
+	SCANCHAR
 	cmp al,13
 	je proceedWelcome
 	mov [si],al
@@ -496,7 +501,7 @@ createPW:
 proceedWelcome:
 	PRINTSTRING doneRegister
 	PRINTSTRING toContinue
-	INPUTOPTION
+	SCANCHAR
     mov al, '$'
     mov [si], al
     jmp welcome
@@ -510,7 +515,7 @@ login:
 	jmp loginPrompt
 
 loginPrompt:
-	INPUTOPTION
+	SCANCHAR
 	cmp al,13
 	je reset
 	mov [si],al
@@ -525,12 +530,9 @@ reset:
 	lea di,user1
 	jmp checkAcc
 
-optionPromptJmp4:
-	jmp optionPrompt
-
 checkAcc:
-	mov al,[si]
-	mov bl,[di]
+	mov al,[di]
+	mov bl,[si]
 	cmp loginEnterCount, 0
 	je loginFailedJumper
 	cmp al,'$'
@@ -547,8 +549,8 @@ reset2:
 	jmp check2
 
 check2:
-	mov al,[si]
-	mov bl,[di]
+	mov al,[di]
+	mov bl,[si]
 	cmp al,'$'
 	je setUserType2
 	cmp al,bl
@@ -562,13 +564,10 @@ loginJumper:
 
 tooMuch:
 	PRINTSTRING tooMuchMsg
-	jmp quitAttemptOverflow
+	jmp quit
 
 loginFailedJumper:
 	jmp loginFailed
-
-optionPromptJmp3:
-	jmp optionPromptJmp4
 
 ;==================login bank password==================
 setUserType1:
@@ -594,7 +593,7 @@ loginPW2:
     lea di, userpw2
 
 loginPWPrompt:	
-	INPUTOPTION
+	SCANCHAR
 	cmp al,13
 	je resetPW
 	mov [si],al
@@ -609,8 +608,8 @@ resetPW:
 	jmp checkPW
 
 checkPW:
-	mov al,[si]
-	mov bl,[di]
+	mov al,[di]
+	mov bl,[si]
 	cmp loginEnterCount, 0
 	je loginFailed
 	cmp al,'$'
@@ -626,13 +625,10 @@ exit:
 	mov dx,offset inUser
 	int 21h
 
-optionPromptJmp2:
-	jmp optionPromptJmp3
-
 loginSuccess:
 	PRINTSTRING accessYes
 	PRINTSTRING toContinue
-	INPUTOPTION
+	SCANCHAR
 	NEWLINE
 	jmp checkBankDetails 
 
@@ -666,7 +662,7 @@ showUser1:
 	PRINTRINGGITBALANCE userBalance1
 	PRINTSENBALANCE userSenBalance1
 	NEWLINE
-	jmp menu
+	jmp quit
 
 showUser2:
 	PRINTSTRING dottedV2
@@ -692,7 +688,7 @@ init:
 	PRINTSTRING menuOpt2Mesg
 	PRINTSTRING menuOpt3Mesg
 	PRINTSTRING promptOptMesg
-	INPUTOPTION
+	SCANCHAR
 	cmp al, '0'
 	je quitJumper2
 	cmp al, '1'
@@ -723,7 +719,7 @@ deposit:
     mov multiplyLoopCount, 0
 	mov inputCount, 0
 promptDepositAmountInput:
-	INPUTOPTION
+	SCANCHAR
 	mov ah, 0
 	cmp al,13
 	je proceedDeposit
@@ -788,7 +784,7 @@ withdrawal:
 	mov amountInputConverted, 0
 
 promptWithdrawalAmountInput:
-	INPUTOPTION
+	SCANCHAR
 	mov ah, 0
 	cmp al,13
 	je proceedWithdrawal
@@ -855,7 +851,7 @@ multiplyWithdrawal:
 	lea si, transferInput
 	
     promptBankAccountInput:
-	INPUTOPTION
+	SCANCHAR
 	cmp al,13
 	jne contPromptBankAccountInputJumper
 	mov al,'$'
@@ -985,7 +981,7 @@ multiplyWithdrawal:
 	mov inputCount, 0
 	
     promptTransferAmountInput:
-	INPUTOPTION
+	SCANCHAR
 	cmp al,13
 	jne contPromptTransferAmountInput
 	mov al,'$'
@@ -1163,7 +1159,7 @@ multiplyWithdrawal:
     nextTransaction:
 	PRINTSTRING promptNextTransactionMesg
 	NEWLINE
-	INPUTOPTION
+	SCANCHAR
 	cmp al, 'y'
 	je menuJumper
 	cmp al, 'Y'
