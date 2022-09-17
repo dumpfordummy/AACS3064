@@ -1,22 +1,29 @@
 .model large
 .stack 9999
 .data
-;======================MAIN MENU MESSAGE======================
+;==========Print Welcome Screen Messages
 	printWelcomeScreenMesg1 DB 13,10,"-----------------------------------------------------------------------------$"
 	printWelcomeScreenMesg2 DB 13,10,"			WELCOME TO DLBank!$"
 	printWelcomeScreenMesg3 DB 13,10,"-----------------------------------------------------------------------------$"
 
+;==========Prompt Main Menu Options Messages
 	mainMenuOptionsMesg1 DB 13,10,"Enter 1 to register$"
 	mainMenuOptionsMesg2 DB 13,10,"Enter 2 to login$"
 	mainMenuOptionsMesg3 DB 13,10,"Enter 3 to exit$"
-	mainMenuOptionsMesg4 DB 13,10,"Option: $"
-
+	mainMenuOptionsMesg4 DB 13,10,"Enter your option: $"
 	invalidOptionMesg DB 13,10,"Invalid option$"
-	alertMesg db 13, 10, "Please enter only Y, y, N or n.", 13, 10, '$'
+	alertMesg DB 13,10,"Please enter only Y, y, N or n.$"
+
+;==========Register Bank Account Module Messages
+	newAccNumMesg DB 13,10,"Your account number is $"
+	promptNewAccPwMesg DB 13,10,"Set your password: $"
+	doneRegisterMesg DB 13,10,"Your account has been created, Welcome! $"
+	toContinueMesg DB 13,10,"Press any button to continue...$"
 
 
+	accountCreated DB 13,10,"Account created!$"
 
-
+;==========dk what 7
 	nameMsg DB 13,10,"Name: $"
 	balanceMsg DB 13,10,"Balance: RM $"
 	dottedV2 DB 13,10,"=======$"
@@ -42,12 +49,7 @@
 	errorMsg DB 13,10,"Please enter correct option$"
 	tooMuchMsg DB 13,10,"Wrong input(5 times). Please try again in 3 minutes$"
 
-;======================REGISTER MESSAGE======================
-	doneRegister DB 13,10,"Your account has been created, Welcome! $"
-	toContinue DB 13,10,"Press any button to continue...$"
-	newAccMsg DB 13,10,"Your account number: $"
-	newPWMsg DB 13,10,"Set your password: $"
-	accountCreated DB 13,10,"Account created!$"
+
 
 ;=========================USER=========================
 	inUser DB 5 dup('$')
@@ -57,15 +59,14 @@
 	loginEnterCount DB 0
 	loginTrial DB 0
 
-	usersAccIndex DW user1,user2
-	user1 DB "8866$"
-	user2 DB 6 dup('$')
+
+	user1AccNum DB "8866$"
+	user2AccNum DB 6 dup('$')
 
 	userType DB ?
 
-	usersPWIndex DW userpw1,userpw2
-	userpw1 DB "aaaa",'$'
-	userpw2 DB 35 dup('$')
+	user1Pw DB "aaaa",'$'
+	user2Pw DB 35 dup('$')
 
 	usersBalanceIndex DW userBalance1
 	userBalance1 DW 9420
@@ -451,7 +452,7 @@ PromptMainMenuOptions:
 ;====================Input Main Menu Options
 	SCANCHAR
 	cmp al,'1'
-	je createAcc
+	je registerBankAccModule
 	cmp al,'2'
 	je loginJumper2
 	cmp al,'3'
@@ -461,52 +462,50 @@ PromptMainMenuOptions:
 	NEWLINE
 	jmp PromptMainMenuOptions
 
-;==========Register Bank Account
-createAcc: 
-	PRINTSTRING newAccMsg
-	lea si,user1
-	lea di,user2
+;==========Register Bank Account Module
+registerBankAccModule: 
+;====================Print New Account Number
+	PRINTSTRING newAccNumMesg
+	lea si,user1AccNum
+	lea di,user2AccNum
 	mov cx,5
-
-assignUser2:
+;==============================Assign User 2 Account Number
+assignUser2AccNum:
 	mov al,[si]
 	mov [di],al
 	inc si
 	inc di
-	loop assignUser2
-
-	LEA si,user2
+	loop assignUser2AccNum
+	lea si,user2AccNum
 	mov al,[si+3]
-	add al,1
+	inc al
 	mov [si+3],al
-	PRINTSTRING user2
-	lea si, userpw2
-	PRINTSTRING newPWMsg
+	PRINTSTRING user2AccNum
+;====================Prompt New Account Password
+	PRINTSTRING promptNewAccPwMesg
+	lea si, user2Pw
 	jmp createPW
-
-loginJumper2:
-	jmp login
-
-quitJumper:
-	jmp quit
-
-createPW:
+assignUser2Pw:
 	SCANCHAR
 	cmp al,13
-	je proceedWelcome
+	je finishAssignUser2Pw
 	mov [si],al
 	inc si
-	jmp createPW
-
-proceedWelcome:
-	PRINTSTRING doneRegister
-	PRINTSTRING toContinue
-	SCANCHAR
+	jmp assignUser2Pw
+finishAssignUser2Pw:
     mov al, '$'
     mov [si], al
-    jmp welcome
+	PRINTSTRING doneRegisterMesg
+	PRINTSTRING toContinueMesg
+	SCANCHAR
+    jmp printWelcomeScreen
 
-;==================login bank account==================
+;==========Jumper
+loginJumper2:
+	jmp login
+quitJumper:
+	jmp quit
+;==========Login Bank Account Module==================
 login:
 	cmp loginTrial,5
 	je tooMuch
@@ -527,7 +526,7 @@ reset:
 	mov al,'$'
     mov [si], al
 	lea si,inUser
-	lea di,user1
+	lea di,user1AccNum
 	jmp checkAcc
 
 checkAcc:
@@ -545,7 +544,7 @@ checkAcc:
 
 reset2:
 	lea si,inUser
-	lea di,user2
+	lea di,user2AccNum
 	jmp check2
 
 check2:
@@ -586,11 +585,11 @@ proceedLoginPW:
     jne loginPW2
 
 loginPW1:
-    lea di, userpw1
+    lea di, user1Pw
     jmp loginPWPrompt 
     
 loginPW2:
-    lea di, userpw2
+    lea di, user2Pw
 
 loginPWPrompt:	
 	SCANCHAR
@@ -874,7 +873,7 @@ multiplyWithdrawal:
 	jmp menu
 	checkTransferToMyselfUser1:
 	lea si, transferInput
-	lea di, user1
+	lea di, user1AccNum
 	mov al, [si]
     cmp al, [di]
     jne cmpUser1
@@ -897,7 +896,7 @@ multiplyWithdrawal:
     
     checkTransferToMyselfUser2:
 	lea si, transferInput
-	lea di, user2
+	lea di, user2AccNum
 	mov al, [si]
     cmp al, [di]
     jne cmpUser1
@@ -920,7 +919,7 @@ multiplyWithdrawal:
 	
 	cmpUser1:
     lea si, transferInput
-    lea di, user1
+    lea di, user1AccNum
     mov al, [si]
     cmp al, [di]
     jne cmpUser2
@@ -944,7 +943,7 @@ multiplyWithdrawal:
     
     cmpUser2:
     lea si, transferInput
-    lea di, user2
+    lea di, user2AccNum
     mov al, [si]
     cmp al, [di]
     jne invalidBankAccountInput
