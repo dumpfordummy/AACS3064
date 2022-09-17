@@ -571,41 +571,34 @@ setUserType2:
 promptUserPw:
     PRINTSTRING promptUserPwMesg
 	lea si,pwInput
-	mov inputCount,0
-    cmp userType, 1
-    jne loginPW2
-
-loginPW1:
-    lea di, user1Pw
-    jmp loginPWPrompt 
-    
-loginPW2:
-    lea di, user2Pw
-
-loginPWPrompt:	
+scanPwInput:	
 	SCANCHAR
 	cmp al,13
-	je resetPW
+	je finishScanPwInput
 	mov [si],al
 	inc si
 	inc inputCount
-	jmp loginPWPrompt
-
-resetPW:
+	jmp scanPwInput
+finishScanPwInput:
 	mov al,'$'
     mov [si], al
 	lea si,pwInput
-	jmp checkPW
-
-checkPW:
+    cmp userType, 1
+    je checkWithUser1Pw
+	cmp userType, 2
+    je checkWithUser2Pw
+checkWithUser1Pw:
+    lea di, user1Pw
+    jmp checkUserPw 
+checkWithUser2Pw:
+    lea di, user2Pw
+checkUserPw:
 	mov al,[di]
 	mov bl,[si]
-	cmp inputCount, 0
-	je printLoginFailed
-	cmp al,'$'
-	je loginSuccess
 	cmp al,bl
 	jne loginFailedPW
+	cmp al,'$'
+	je loginSuccess
 	inc si
 	inc di
 	jmp checkPW
