@@ -3,7 +3,7 @@
 .data
 ;==========Print Welcome Screen Messages
 	dotted1Mesg DB 13,10,"------------------------------------------------------------------------$"
-	printWelcomeScreenMesg DB 13,10,"			WELCOME TO DLBank!$"
+	printWelcomeScreenMesg DB 13,10,"					WELCOME TO DLBank!$"
 
 ;==========Prompt Main Menu Options Messages
 	mainMenuOptionsMesg1 DB 13,10,"Enter 1 to register$"
@@ -15,7 +15,7 @@
 ;==========Register Bank Account Module Messages
 	newAccNumMesg DB 13,10,"Your account number is $"
 	promptNewAccPwMesg DB 13,10,"Set your password: $"
-	doneRegisterMesg DB 13,10,"Your account has been created, Welcome! $"
+	doneRegisterMesg DB 13,10,"Your account has been created, Welcome To DLBank! $"
 	toContinueMesg DB 13,10,"Press any button to continue...$"
 
 ;==========Login Bank Account Module Messages
@@ -27,40 +27,41 @@
 	loginSuccessMesg DB 13,10,"Access Granted! $"
 
 ;==========Print User Bank Account Details Messages
-	dotted2Mesg DB 13,10,"=======$"
-	bankLogoMesg DB 13,10,"DL BANK$"
-	nameMesg DB 13,10,"Hello Mr/Ms $"
-    balanceMesg DB 13, 10, "Your balance is RM$"
+	dotted2Mesg DB 13,10,"=====================$"
+	bankLogoMesg DB 13,10,"       DL BANK$"
+	nameMesg DB 13,10,"Hello, Mr/Ms $"
+    balanceMesg DB 13,10,"Your bank balance is RM$"
 
 ;=========Prompt Sub Menu Options Messages
-	subMenuOptionsMesg1 DB 13, 10, "Enter 0 to exit$"
-	subMenuOptionsMesg2 DB 13, 10, "Enter 1 to Deposit$"
-	subMenuOptionsMesg3 DB 13, 10, "Enter 2 to Withdrawal$"
-	subMenuOptionsMesg4 DB 13, 10, "Enter 3 to Transfer$"
-	subMenuOptionsMesg5 DB 13, 10, "Enter your option: $"
-	promptDepositAmountMesg DB 13, 10, "Enter deposit amount: $"
-	depositSuccessMesg DB 13, 10, "Deposit successfully!$"
+	subMenuOptionsMesg1 DB 13,10,"Enter 0 to Logout$"
+	subMenuOptionsMesg2 DB 13,10,"Enter 1 to Deposit$"
+	subMenuOptionsMesg3 DB 13,10,"Enter 2 to Withdrawal$"
+	subMenuOptionsMesg4 DB 13,10,"Enter 3 to Transfer$"
+	subMenuOptionsMesg5 DB 13,10,"Enter your option: $"
 
-	promptWithdrawalAmountMesg DB 13, 10, "Enter withdrawal amount: $"
-	promptBankAccountMesg DB 13, 10, "Transfer to(Bank Account)?(Enter 0 back to menu):$"
-	promptTransferAmountMesg DB 13, 10, "Enter transfer amount: $"
+	promptDepositAmountMesg DB 13,10,"Enter deposit amount: $"
+	depositSuccessMesg DB 13,10,"Deposit successfully!$"
+
+	promptWithdrawalAmountMesg DB 13,10,"Enter withdrawal amount: $"
+    withdrawalSuccessMesg DB 13,10,"Withdrawal successfully!$"
+
+	promptTransferBankAccountMesg DB 13,10,"Enter receiver bank account: $"
+	promptTransferAmountMesg DB 13,10,"Enter transfer amount: $"
+	transferSuccessMesg DB 13,10,"Transfer successfully!$"
+
 	promptNextTransactionMesg DB 13, 10, "Any other transaction?(Y/N)$"
 
+	logoutSuccessMesg DB 13,10,"Logout successfully! Thank you for using DLBank ATM.$"
 
-    
-    withdrawalSuccessMesg DB 13, 10, "Withdrawal successfully!$"
+	confirmCloseProgramMesg DB 13, 10, "Are you sure to close program?(Y/N)$"
+	summaryMesg1 DB 13, 10, "Summary$"
+	summaryMesg2 DB 13, 10, "Deposit(s): $"
+	summaryMesg3 DB 13, 10, "Withdrawal(s): $"
+	summaryMesg4 DB	13, 10, "Transfer(s): $"
+	countDep DB '0'
+	countWdw DB '0'
+	countTrf DB '0'
 
-	transferSuccessMesg DB 13,10,"Transfer successfully!$"
-	msg2 db 13, 10, "logout. thank you liangzai", 13, 10, '$'
-	msg3 db 13, 10, "Do you wish to continue? (Y/N)", 13, 10, '$'
-	msg4 db 13, 10, "Summary", 13, 10, '$'
-	msg5 db 13, 10, "Deposit(s): $"
-	msg6 db 13, 10, "Withdrawal(s): $"
-	msg7 db	13, 10, "Transfer(s): $"
-	countDep db '0'
-	countWdw db '0'
-	countTrf db '0'
-	logoutMsg DB 13,10,"Signed out. Thank you for using DLBank$"
 
 
 ;==========All
@@ -74,9 +75,9 @@
 
 ;==========User Varibles
 	userType DB 0
-	user1AccNum DB "8866$"
+	user1AccNum DB "1234$"
 	user2AccNum DB 35 dup('$')
-	user1Pw DB "abc@16888$"
+	user1Pw DB "asdf$"
 	user2Pw DB 35 dup('$')
 	user1Name DB "Pua Jin Jian$"
 	user2Name DB "Hoo Chun Yuan$"
@@ -347,12 +348,14 @@ PromptMainMenuOptions:
 	PRINTSTRING mainMenuOptionsMesg4
 ;====================Input Main Menu Options
 	SCANCHAR
+
+;==========Compare Main Menu Options
 	cmp al,'1'
 	je registerBankAccModule
 	cmp al,'2'
 	je loginBankAccountModule
 	cmp al,'3'
-	je exit
+	je closeProgram
 	PRINTSTRING invalidOptionMesg
 	NEWLINE
 	jmp PromptMainMenuOptions
@@ -611,9 +614,11 @@ multiplyDepositAmountInput:
 	call addAxToBalance
 	inc multiplyLoopCount
 	loop multiplyDepositAmountInput
+	NEWLINE
 	PRINTSTRING depositSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
+	NEWLINE
     jmp promptSubMenuOptions
 
 ;==========Withdrawal Module
@@ -667,147 +672,115 @@ multiplyWithdrawalAmountInput:
 	inc multiplyLoopCount
 	loop multiplyWithdrawalAmountInput
 	call calculateFee
+	NEWLINE
 	PRINTSTRING withdrawalSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
+	NEWLINE
     jmp promptSubMenuOptions
 	
 ;==========Transfer Module
 transferModule:
-	PRINTSTRING promptBankAccountMesg
+	PRINTSTRING promptTransferBankAccountMesg
 	lea si, transferInput
+	mov inputCount, 0
 promptBankAccountInput:
 	SCANCHAR
+	cmp al, '$'
+	je invalidBankAccountInput
 	cmp al,13
-	jne contPromptBankAccountInputJumper
+	je cmpCurrentUser
+	mov [si], al
+	inc si
+	inc inputCount
+	jmp promptBankAccountInput
+cmpCurrentUser:
 	mov al,'$'
 	mov [si], al
-	lea si, transferInput
-	mov al, [si]
-	cmp al, '0'
-	je promptSubMenuOptions
-cmpCurrentUser:
+	cmp inputCount, 0
+	je invalidBankAccountInput
 	cmp userType, 1
 	je checkTransferToMyselfUser1
 	cmp userType, 2
 	je checkTransferToMyselfUser2
-	jmp cmpUser1
-contPromptBankAccountInputJumper:
-	jmp contPromptBankAccountInput
 checkTransferToMyselfUser1:
 	lea si, transferInput
 	lea di, user1AccNum
+contCheckTransferToMyselfUser1:
 	mov al, [si]
-    cmp al, [di]
+	mov dl, [di]
+    cmp al, dl
     jne cmpUser1
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser1
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser1
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser1
-    jmp invalidBankAccountInput
+	cmp al, '$'
+	je invalidBankAccountInput
+	inc si
+	inc di
+	jmp contCheckTransferToMyselfUser1
 checkTransferToMyselfUser2:
 	lea si, transferInput
 	lea di, user2AccNum
+contCheckTransferToMyselfUser2:
 	mov al, [si]
-    cmp al, [di]
+	mov dl, [di]
+    cmp al, dl
     jne cmpUser1
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser1
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser1
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser1
-    jmp invalidBankAccountInput
+	cmp al, '$'
+	je invalidBankAccountInput
+	inc si
+	inc di
+	jmp contCheckTransferToMyselfUser2
 cmpUser1:
     lea si, transferInput
     lea di, user1AccNum
+contCmpUser1:
     mov al, [si]
-    cmp al, [di]
+	mov dl, [di]
+    cmp al, dl
     jne cmpUser2
+	cmp al, '$'
+	je setTransferToUser1
     inc si
     inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser2
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser2
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne cmpUser2
-    mov transferTo, 1
-    jmp promptTransferAmount
+    jmp contCmpUser1
 cmpUser2:
     lea si, transferInput
     lea di, user2AccNum
+contCmpUser2:
     mov al, [si]
-    cmp al, [di]
+	mov dl, [di]
+    cmp al, dl
     jne invalidBankAccountInput
+	cmp al, '$'
+	je setTransferToUser2
     inc si
     inc di
-    mov al, [si]
-    cmp al, [di]
-    jne invalidBankAccountInput
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne invalidBankAccountInput
-    inc si
-    inc di
-    mov al, [si]
-    cmp al, [di]
-    jne invalidBankAccountInput
-    mov transferTo, 2
-	jmp promptTransferAmount 
-contPromptBankAccountInput:
-	mov [si],al
-	inc si
-	jmp promptBankAccountInput
+    jmp contCmpUser2
+setTransferToUser1:
+	mov transferTo, 1
+	jmp promptTransferAmount
+setTransferToUser2:
+	mov transferTo, 2
+	jmp promptTransferAmount
 invalidBankAccountInput:
     PRINTSTRING invalidInputMesg
-    jmp promptBankAccountInput
+    jmp transferModule
 promptTransferAmount:
 	PRINTSTRING promptTransferAmountMesg
 	lea si, transferInput
 	mov inputCount, 0
 promptTransferAmountInput:
 	SCANCHAR
+	cmp al, '$'
+	je invalidInputTransfer
 	cmp al,13
 	jne contPromptTransferAmountInput
 	mov al,'$'
 	mov [si], al
-	cmp inputCount,0
+	cmp inputCount, 0
 	je invalidInputTransfer
-	cmp inputCount,4
+	cmp inputCount, 4
 	jg invalidInputTransfer
-	mov cl, inputCount
-	mov ch, 0
-    jmp multiplyTransfer
+    jmp multiplyTransferAmountInput
 contPromptTransferAmountInput:
 	mov [si],al
 	inc si
@@ -816,17 +789,17 @@ contPromptTransferAmountInput:
 invalidInputTransfer:
     PRINTSTRING invalidInputMesg
     jmp promptTransferAmount
-multiplyTransfer:
+multiplyTransferAmountInput:
     lea si, transferInput
     mov ax, 0
     mov dx, 0
-    cmp cx, 4
+    cmp inputCount, 4
     je four
-    cmp cx, 3
+    cmp inputCount, 3
     je three
-    cmp cx, 2
+    cmp inputCount, 2
     je two
-    cmp cx, 1
+    cmp inputCount, 1
     je one
 four:
     mov dl, [si]
@@ -857,23 +830,19 @@ one:
     cmp userType, 1
     je deductFromCurrentUser1
     cmp userType, 2
-    je deductFromCurrentUser2Jumper
+    je deductFromCurrentUser2
 deductFromCurrentUser1:
     cmp ax, user1Balance
     jg invalidInputTransfer
     je compareDecimal1
     jmp validToTransfer1
-deductFromCurrentUser2Jumper:
-	jmp deductFromCurrentUser2
-invalidInputTransferJumper2:
-	jmp invalidInputTransfer
 compareDecimal1:
     mov ax, amountInputConverted
     mov dx, 0 
 	mov bx, 10000
 	div bx
 	cmp dx, user1BalanceDec
-	jg invalidInputTransferJumper2
+	jg invalidInputTransfer
 validToTransfer1:
     mov ax, amountInputConverted
     mov dx, 0
@@ -882,23 +851,21 @@ validToTransfer1:
 	div bx
 	cmp user1BalanceDec, dx
 	jge noNeedBorrow1
-    sub user2Balance, 1
+    sub user1Balance, 1
     add user1BalanceDec, 10000
 noNeedBorrow1: 
 	sub user1BalanceDec, dx	
 	NEWLINE
 	PRINTSTRING transferSuccessMesg
 	PRINTSTRING balanceMesg
-	NEWLINE    
     PRINT4DIGIT user1Balance
     PRINTDECIMALPOINT
     PRINT4DIGIT user1BalanceDec
 	jmp finishDeductFromCurrentUser
-invalidInputTransferJumper:
-	jmp invalidInputTransfer
+
 deductFromCurrentUser2:
     cmp ax, user2Balance
-    jg invalidInputTransferJumper
+    jg invalidInputTransfer
     je compareDecimal2
     jmp validToTransfer2
 compareDecimal2:
@@ -907,7 +874,7 @@ compareDecimal2:
 	mov bx, 10000
 	div bx
 	cmp dx, user2BalanceDec
-	jg invalidInputTransferJumper
+	jg invalidInputTransfer
 validToTransfer2:
     mov ax, amountInputConverted
     mov dx, 0
@@ -916,24 +883,24 @@ validToTransfer2:
 	div bx
 	cmp user2BalanceDec, dx
 	jge noNeedBorrow2
-    sub user1Balance, 1
+    sub user2Balance, 1
     add user2BalanceDec, 10000
 noNeedBorrow2: 
 	sub user2BalanceDec, dx	
 	NEWLINE
 	PRINTSTRING transferSuccessMesg
     PRINTSTRING balanceMesg
-    NEWLINE    
     PRINT4DIGIT user2Balance
     PRINTDECIMALPOINT
     PRINT4DIGIT user2BalanceDec
-    NEWLINE
 	jmp finishDeductFromCurrentUser    
+
 finishDeductFromCurrentUser:    
     cmp transferTo, 1
     je transferToUser1
     cmp transferTo, 2
     je transferToUser2
+
 transferToUser1:
     mov ax, amountInputConverted
     add user1Balance, ax
@@ -944,13 +911,11 @@ transferToUser2:
     jmp finishTransfer
 finishTransfer:
     inc countTrf
-    NEWLINE
-
 
 ;======================nextTransaction?======================
-    nextTransaction:
-	PRINTSTRING promptNextTransactionMesg
+nextTransaction:
 	NEWLINE
+	PRINTSTRING promptNextTransactionMesg
 	SCANCHAR
 	cmp al, 'y'
 	je promptSubMenuOptions
@@ -962,53 +927,48 @@ finishTransfer:
 	je logout
 	jmp nextTransaction
 logout:
-	PRINTSTRING logoutMsg
+	PRINTSTRING logoutSuccessMesg
+	NEWLINE
 	jmp printWelcomeScreen	
-exit:
-    lea dx, msg3
+closeProgram:
+    lea dx, confirmCloseProgramMesg
 	mov ah, 09h
 	int 21h
 	mov ah, 01h
 	int 21h
-	cmp al, 59h
+	cmp al, 'y'
+	je summary
+	cmp al, 'Y'
+	je summary	
+	cmp al, 'n'
 	je printWelcomeScreen
-	cmp al, 79h
-	je printWelcomeScreen	
-	cmp al, 4eh
-	je summary
-	cmp al, 6eh
-	je summary
-	jmp other
-summary:	
-	lea dx, msg5
+	cmp al, 'N'
+	je printWelcomeScreen
+	lea dx, invalidInputMesg
+	mov ah, 09h
+	int 21h
+	jmp closeProgram
+summary:
+	lea dx, summaryMesg1
+	mov ah, 09h
+	int 21h	
+	lea dx, summaryMesg2
 	mov ah, 09h
 	int 21h
 	mov ah, 02h
 	mov dl, countDep
 	int 21h
-	lea dx, msg6
+	lea dx, summaryMesg3
 	mov ah, 09h
 	int 21h
 	mov ah, 02h
 	mov dl, countWdw
 	int 21h
-	lea dx, msg7
+	lea dx, summaryMesg4
 	mov ah, 09h
 	int 21h
 	mov ah, 02h
 	mov dl, countTrf
-	int 21h
-	jmp closeProgram
-other:	
-	lea dx, invalidInputMesg
-	mov ah, 09h
-	int 21h
-	jmp exit
-closeProgram:	
-    lea dx, msg2
-	mov ah, 09h
-	int 21h
-	mov ah, 4ch
 	int 21h	
 
 	mov ah,4ch
