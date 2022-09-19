@@ -32,27 +32,31 @@
 	nameMesg DB 13,10,"Hello, Mr/Ms $"
     balanceMesg DB 13,10,"Your bank balance is RM$"
 
-;=========Prompt Sub Menu Options Messages
+;==========Prompt Sub Menu Options Messages
 	subMenuOptionsMesg1 DB 13,10,"Enter 0 to Logout$"
 	subMenuOptionsMesg2 DB 13,10,"Enter 1 to Deposit$"
 	subMenuOptionsMesg3 DB 13,10,"Enter 2 to Withdrawal$"
 	subMenuOptionsMesg4 DB 13,10,"Enter 3 to Transfer$"
 	subMenuOptionsMesg5 DB 13,10,"Enter your option: $"
 
+;==========Deposit Module Messages
 	promptDepositAmountMesg DB 13,10,"Enter deposit amount: $"
 	depositSuccessMesg DB 13,10,"Deposit successfully!$"
 
+;==========Withdrawal Module Messages
 	promptWithdrawalAmountMesg DB 13,10,"Enter withdrawal amount: $"
     withdrawalSuccessMesg DB 13,10,"Withdrawal successfully!$"
 
+;==========Transfer Module Messages
 	promptTransferBankAccountMesg DB 13,10,"Enter receiver bank account: $"
 	promptTransferAmountMesg DB 13,10,"Enter transfer amount: $"
 	transferSuccessMesg DB 13,10,"Transfer successfully!$"
-
 	promptNextTransactionMesg DB 13, 10, "Any other transaction?(Y/N)$"
 
+;==========Logout Message
 	logoutSuccessMesg DB 13,10,"Logout successfully! Thank you for using DLBank ATM.$"
 
+;==========Close Program Messages
 	confirmCloseProgramMesg DB 13, 10, "Are you sure to close program?(Y/N)$"
 	summaryMesg1 DB 13, 10, "Summary$"
 	summaryMesg2 DB 13, 10, "Deposit(s): $"
@@ -61,8 +65,6 @@
 	countDep DB '0'
 	countWdw DB '0'
 	countTrf DB '0'
-
-
 
 ;==========All
 	invalidInputMesg DB 13, 10, "INVALID INPUT!$"
