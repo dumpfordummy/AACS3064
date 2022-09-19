@@ -270,8 +270,8 @@ calculateFee proc
 	proceedSub:
 		mov ax, user1Balance
 		cmp ax, amountInputCalculated
-		jng invalidInputWithdrawalJmper1 ;if balance not enuf
 		je compareDecIfSame ;check decimal if before decimal is same
+		jb invalidInputWithdrawalJmper1 ;if balance not enuf
 		jmp doSub; if enuf for withdrawal
 	compareDecIfSame:
 		mov ax, user1BalanceDec
@@ -284,7 +284,7 @@ calculateFee proc
 	doSub:
 		mov ax, amountInputCalculatedDec
 		cmp user1BalanceDec, ax
-		jng takeBeforeDecimal
+		jb takeBeforeDecimal
 		mov ax, amountInputCalculated
 		sub user1Balance, ax
 		mov ax, amountInputCalculatedDec
@@ -293,8 +293,8 @@ calculateFee proc
 	proceedSub2:
 		mov ax, user2Balance
 		cmp ax, amountInputCalculated
-		jng invalidInputWithdrawalJmper1 ;if balance not enuf
 		je compareDecIfSame ;check decimal if before decimal is same
+		jb invalidInputWithdrawalJmper1 ;if balance not enuf
 		jmp doSub2; if enuf for withdrawal
 	compareDecIfSame2:
 		mov ax, user2BalanceDec
@@ -307,7 +307,7 @@ calculateFee proc
 	doSub2:
 		mov ax, amountInputCalculatedDec
 		cmp user2BalanceDec, ax
-		jng takeBeforeDecimal
+		jb takeBeforeDecimal
 		mov ax, amountInputCalculated
 		sub user2Balance, ax
 		mov ax, amountInputCalculatedDec
