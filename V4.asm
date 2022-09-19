@@ -355,7 +355,7 @@ PromptMainMenuOptions:
 	cmp al,'2'
 	je loginBankAccountModule
 	cmp al,'3'
-	je closeProgram
+	je promptCloseProgram
 	PRINTSTRING invalidOptionMesg
 	NEWLINE
 	jmp PromptMainMenuOptions
@@ -912,8 +912,8 @@ transferToUser2:
 finishTransfer:
     inc countTrf
 
-;======================nextTransaction?======================
-nextTransaction:
+;==========Prompt Next Transaction
+promptNextTransaction:
 	NEWLINE
 	PRINTSTRING promptNextTransactionMesg
 	SCANCHAR
@@ -922,24 +922,28 @@ nextTransaction:
 	cmp al, 'Y'
 	je promptSubMenuOptions
 	cmp al, 'n'
-	je logout
+	je printLogoutSuccess
 	cmp al, 'N'
-	je logout
-	jmp nextTransaction
-logout:
+	je printLogoutSuccess
+	jmp promptNextTransaction
+
+;==========Print Logout Success
+printLogoutSuccess:
 	PRINTSTRING logoutSuccessMesg
 	NEWLINE
-	jmp printWelcomeScreen	
-closeProgram:
+	jmp printWelcomeScreen
+
+;==========Close Program
+promptCloseProgram:
     lea dx, confirmCloseProgramMesg
 	mov ah, 09h
 	int 21h
 	mov ah, 01h
 	int 21h
 	cmp al, 'y'
-	je summary
+	je printSummary
 	cmp al, 'Y'
-	je summary	
+	je printSummary	
 	cmp al, 'n'
 	je printWelcomeScreen
 	cmp al, 'N'
@@ -947,8 +951,10 @@ closeProgram:
 	lea dx, invalidInputMesg
 	mov ah, 09h
 	int 21h
-	jmp closeProgram
-summary:
+	jmp promptCloseProgram
+
+;==========Print Summary
+printSummary:
 	lea dx, summaryMesg1
 	mov ah, 09h
 	int 21h	
