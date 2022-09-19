@@ -558,7 +558,7 @@ promptSubMenuOptions:
 ;==================Input Sub Menu Options
 	SCANCHAR
 	cmp al, '0'
-	je logout
+	je printLogoutSuccess
 	cmp al, '1'
 	je depositModule
 	cmp al, '2'
