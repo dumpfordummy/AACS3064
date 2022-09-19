@@ -76,7 +76,7 @@
 	userType DB 0
 	user1AccNum DB "8866$"
 	user2AccNum DB 35 dup('$')
-	user1Pw DB "aaaa$"
+	user1Pw DB "abc@16888$"
 	user2Pw DB 35 dup('$')
 	user1Name DB "Pua Jin Jian$"
 	user2Name DB "Hoo Chun Yuan$"
@@ -553,7 +553,7 @@ promptSubMenuOptions:
 ;==================Input Sub Menu Options
 	SCANCHAR
 	cmp al, '0'
-	je exit
+	je logout
 	cmp al, '1'
 	je depositModule
 	cmp al, '2'
