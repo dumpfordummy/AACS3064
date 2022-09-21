@@ -83,10 +83,10 @@
 	user2Pw DB 35 dup('$')
 	user1Name DB "Pua Jin Jian$"
 	user2Name DB "Hoo Chun Yuan$"
-	user1Balance DW 9420
-	user1BalanceDec DW 5000
-	user2Balance DW 6688
-	user2BalanceDec DW 8500
+	user1Balance DW 1000
+	user1BalanceDec DW 1000
+	user2Balance DW 0
+	user2BalanceDec DW 0
 
 
     transferAcc DB 35 dup('$')
@@ -103,8 +103,7 @@
 	tempIndex DW ?
     multiplyLoopCount DB 0
     addToDecFactor DW 0
-
-
+	tempVar DW 0
 
 ;======================MACRO LIST======================
 PRINTDECIMALPOINT MACRO
@@ -212,15 +211,26 @@ afterPrintBalance:
     ret
 printCurrentUserBalance endp 
 
-
 addAxToBalance proc
+	mov ax, tempVar
+	push ax
     cmp userType, 1
     je addToUser1
     jne addToUser2
-addToUser1:
+addToUser1:	
+	add ax, user1Balance
+	add tempVar, ax
+	cmp tempVar, 2710H
+	jge invalidDepositAmountInput
+	pop ax
     add user1Balance, ax
     jmp afterAddBalance
 addToUser2:
+	add ax, user2Balance
+	add tempVar, ax
+	cmp tempVar, 2710H
+	jge invalidDepositAmountInput
+	pop ax
     add user2Balance, ax
 afterAddBalance:    	
     ret 
@@ -270,7 +280,8 @@ calculateFee proc
 	compareDecIfSame:
 		mov ax, user1BalanceDec
 		cmp ax, amountInputCalculatedDec
-		jng invalidInputWithdrawalJmper1 ;not enuf balance
+		jb invalidInputWithdrawalJmper1 ;not enuf balance
+		jmp doSub
 	takeBeforeDecimal:    
 		dec user1Balance ; take before decimal
 		mov ax, addToDecFactor
@@ -293,7 +304,8 @@ calculateFee proc
 	compareDecIfSame2:
 		mov ax, user2BalanceDec
 		cmp ax, amountInputCalculatedDec
-		jng invalidInputWithdrawalJmper1 ;not enuf balance
+		jb invalidInputWithdrawalJmper1 ;not enuf balance
+		jmp doSub2
 	takeBeforeDecimal2:    
 		dec user2Balance ; take before decimal
 		mov ax, addToDecFactor
@@ -384,11 +396,11 @@ PromptMainMenuOptions:
 	jmp PromptMainMenuOptions
 
 ;==========Register Bank Account Module
-registerBankAccModule: 
+registerBankAccModule:
 ;====================Print New Account Number
 	PRINTSTRING newAccNumMesg
-	lea si,user1AccNum
-	lea di,user2AccNum
+	lea si, user1AccNum
+	lea di, user2AccNum
 	mov cx,5
 ;====================Assign User 2 Account Number
 assignUser2AccNum:
@@ -595,6 +607,7 @@ depositModule:
 	lea si, amountInput
     mov multiplyLoopCount, 0
 	mov inputCount, 0
+	mov tempVar, 0
 scanDepositAmountInput:
 	call userInputDigit
 	mov ah, 0
@@ -604,7 +617,7 @@ scanDepositAmountInput:
 	sub ax, 30h
 	mov [si],ax
 	add si, 2
-	jmp scanDepositAmountInput	
+	jmp scanDepositAmountInput
 finishScanDepositAmountInput:
     cmp inputCount, 0
     je invalidDepositAmountInput
@@ -634,9 +647,10 @@ multiplyDepositAmountInput:
 	add si, ax
 	mov ax, [si]
 	mul bx
-	call addAxToBalance
+	add tempVar, ax
 	inc multiplyLoopCount
 	loop multiplyDepositAmountInput
+	call addAxToBalance
 	NEWLINE
 	PRINTSTRING depositSuccessMesg
     PRINTSTRING balanceMesg
@@ -722,10 +736,29 @@ cmpCurrentUser:
 	mov [si], al
 	cmp inputCount, 0
 	je invalidBankAccountInput
+	jmp checkBackToSubMenu
+contCmpCurrentUser:
 	cmp userType, 1
 	je checkTransferToMyselfUser1
 	cmp userType, 2
 	je checkTransferToMyselfUser2
+checkBackToSubMenu:
+	lea si, transferInput
+	cmp [si], '0'
+	jne contCmpCurrentUser
+	inc si
+	cmp [si], '0'
+	jne contCmpCurrentUser
+	inc si
+	cmp [si], '0'
+	jne contCmpCurrentUser
+	inc si
+	cmp [si], '0'
+	jne contCmpCurrentUser
+	inc si
+	cmp [si], '$'
+	jne contCmpCurrentUser
+	jmp promptSubMenuOptions
 checkTransferToMyselfUser1:
 	lea si, transferInput
 	lea di, user1AccNum
@@ -855,6 +888,10 @@ one:
     cmp userType, 2
     je deductFromCurrentUser2
 deductFromCurrentUser1:
+	mov dx, user2Balance
+	add dx, amountInputConverted
+	cmp dx, 1000
+	jge invalidInputTransfer
     cmp ax, user1Balance
     jg invalidInputTransfer
     je compareDecimal1
@@ -885,7 +922,6 @@ noNeedBorrow1:
     PRINTDECIMALPOINT
     PRINT4DIGIT user1BalanceDec
 	jmp finishDeductFromCurrentUser
-
 deductFromCurrentUser2:
     cmp ax, user2Balance
     jg invalidInputTransfer
@@ -899,6 +935,10 @@ compareDecimal2:
 	cmp dx, user2BalanceDec
 	jg invalidInputTransfer
 validToTransfer2:
+	mov dx, user1Balance
+	add dx, amountInputConverted
+	cmp dx, 10000
+	jge invalidInputTransfer
     mov ax, amountInputConverted
     mov dx, 0
     sub user2Balance, ax 
@@ -917,13 +957,11 @@ noNeedBorrow2:
     PRINTDECIMALPOINT
     PRINT4DIGIT user2BalanceDec
 	jmp finishDeductFromCurrentUser    
-
 finishDeductFromCurrentUser:    
     cmp transferTo, 1
     je transferToUser1
     cmp transferTo, 2
     je transferToUser2
-
 transferToUser1:
     mov ax, amountInputConverted
     add user1Balance, ax
