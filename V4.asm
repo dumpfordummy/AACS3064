@@ -342,7 +342,6 @@ returnUserInputDigit:
     ret   
 userInputDigit endp
 
-
 ;======================withdrawalJumper======================
 withdrawalJmper1:
 	jmp withdrawalModule
@@ -940,7 +939,7 @@ finishTransfer:
 promptNextTransaction:
 	NEWLINE
 	PRINTSTRING promptNextTransactionMesg
-	call userInputDigit
+	SCANCHAR
 	cmp al, 'y'
 	je promptSubMenuOptions
 	cmp al, 'Y'
