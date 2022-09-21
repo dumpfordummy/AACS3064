@@ -165,12 +165,12 @@ PRINTSTRING Macro Input
 	int 21H
 	endm
 
-	SCANCHAR Macro
+SCANCHAR Macro
 	mov ah,01h
 	int 21h
-	endm
+endm
 
-	CLEARSCREEN MACRO
+CLEARSCREEN MACRO
     mov AX, 0600H
     mov BH,71H
     mov CX, 0000H 
@@ -192,6 +192,7 @@ assignToAx proc
     	ret
 assignToAx endp
 
+
 printCurrentUserBalance proc
     cmp userType, 1
 	je printUser1Jumper
@@ -199,38 +200,31 @@ printCurrentUserBalance proc
     jmp asdf
 printUser1Jumper:
 	jmp printUser1
-	
 asdf:
 PRINTDECIMALPOINT
     PRINT4DIGIT user2BalanceDec
 	jmp afterPrintBalance
-
 printUser1:
     PRINT4DIGIT user1Balance
     PRINTDECIMALPOINT
     PRINT4DIGIT user1BalanceDec
 afterPrintBalance:    	
     ret
-
 printCurrentUserBalance endp 
 
-addAxToBalance proc  ;;
+
+addAxToBalance proc
     cmp userType, 1
     je addToUser1
     jne addToUser2
-    
 addToUser1:
     add user1Balance, ax
     jmp afterAddBalance
-    
 addToUser2:
     add user2Balance, ax
-    
 afterAddBalance:    	
     ret 
 addAxToBalance endp
-
-
 
 calculateFee proc
 		mov amountInputCalculated, 0
@@ -316,7 +310,37 @@ calculateFee proc
 		ret    
 calculateFee endp    
 
-
+userInputDigit proc
+userInput:    
+    mov ah,01h
+    int 21h
+    
+    cmp al, 13
+    je returnUserInputDigit
+    
+    cmp al, 30H
+    jge greaterEqualThanMin
+    jmp reenterInput
+    
+greaterEqualThanMin:    
+    cmp al, 39H
+    jbe lesserEqualThanMax
+    jmp reenterInput
+    
+lesserEqualThanMax:
+    jmp returnUserInputDigit
+reenterInput:
+    mov ah, 02h
+    mov dl, 08h
+    int 21h
+    mov dl, 20h
+    int 21h
+    mov dl, 08h
+    int 21h
+    jmp userInput
+returnUserInputDigit: 
+    ret   
+userInputDigit endp
 
 
 ;======================withdrawalJumper======================
@@ -327,8 +351,6 @@ transferJmper1:
 invalidInputWithdrawalJmper1:
     jmp	invalidWithdrawalAmountInput
 ;============================================================
-
-
 
 ;==========Main Program
 main proc
@@ -411,7 +433,7 @@ promptUserAccNum:
 	PRINTSTRING promptUserAccNumMesg
 	lea si,accNumInput 
 scanAccNumInput:
-	SCANCHAR
+	call userInputDigit
 	cmp al,13
 	je finishScanAccNumInput
 	mov [si],al
@@ -575,7 +597,7 @@ depositModule:
     mov multiplyLoopCount, 0
 	mov inputCount, 0
 scanDepositAmountInput:
-	SCANCHAR
+	call userInputDigit
 	mov ah, 0
 	cmp al,13
 	je finishScanDepositAmountInput
@@ -632,7 +654,7 @@ withdrawalModule:
 	mov inputCount, 0
 	mov amountInputConverted, 0
 scanWithdrawalAmountInput:
-	SCANCHAR
+	call userInputDigit
 	mov ah, 0
 	cmp al,13
 	je finishScanWithdrawalAmountInput
@@ -687,7 +709,7 @@ transferModule:
 	lea si, transferInput
 	mov inputCount, 0
 promptBankAccountInput:
-	SCANCHAR
+	call userInputDigit
 	cmp al, '$'
 	je invalidBankAccountInput
 	cmp al,13
@@ -771,7 +793,7 @@ promptTransferAmount:
 	lea si, transferInput
 	mov inputCount, 0
 promptTransferAmountInput:
-	SCANCHAR
+	call userInputDigit
 	cmp al, '$'
 	je invalidInputTransfer
 	cmp al,13
@@ -918,7 +940,7 @@ finishTransfer:
 promptNextTransaction:
 	NEWLINE
 	PRINTSTRING promptNextTransactionMesg
-	SCANCHAR
+	call userInputDigit
 	cmp al, 'y'
 	je promptSubMenuOptions
 	cmp al, 'Y'
