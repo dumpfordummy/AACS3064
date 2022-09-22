@@ -61,7 +61,7 @@
 
 ;==========Close Program Messages
 	confirmCloseProgramMesg DB 13, 10, "Are you sure to close program?(Y/N)$"
-	summaryMesg1 DB 13, 10, "Summary$"
+	summaryMesg1 DB 13, 10, 13, 10, "Summary of this session$"
 	summaryMesg2 DB 13, 10, "Deposit(s): $"
 	summaryMesg3 DB 13, 10, "Withdrawal(s): $"
 	summaryMesg4 DB	13, 10, "Transfer(s): $"
@@ -622,7 +622,7 @@ promptSubMenuOptions:
 	SCANCHAR
 	cmp al, '0'
 	jne contPromptSubMenuOptions
-	jmp printLogoutSuccess
+	jmp printSummary
 contPromptSubMenuOptions:
 	cmp al, '1'
 	jne cont2PromptSubMenuOptions
@@ -1059,9 +1059,9 @@ promptNextTransaction:
 	cmp al, 'Y'
 	je promptSubMenuOptionsJumper
 	cmp al, 'n'
-	je printLogoutSuccess
+	je printSummary
 	cmp al, 'N'
-	je printLogoutSuccess
+	je printSummary
 	jmp promptNextTransaction
 
 ;====================================Jumper====================================
