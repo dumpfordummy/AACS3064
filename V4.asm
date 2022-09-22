@@ -322,7 +322,7 @@ calculateFee proc
 	doSub2:
 		mov ax, amountInputCalculatedDec
 		cmp user2BalanceDec, ax
-		jb takeBeforeDecimal
+		jb takeBeforeDecimal2
 		mov ax, amountInputCalculated
 		sub user2Balance, ax
 		mov ax, amountInputCalculatedDec
