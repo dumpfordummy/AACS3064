@@ -48,7 +48,8 @@
     withdrawalSuccessMesg DB 13,10,"Withdrawal successfully!$"
 
 ;==========Transfer Module Messages
-	promptTransferBankAccountMesg DB 13,10,"Enter receiver bank account: $"
+	promptTransferBankAccountMesg DB 13,10,"Enter receiver bank account(0000 back to menu): $"
+	exitTrasferSuccessMesg DB 13,10,"Exit Transfer Successfully! $"
 	promptTransferAmountMesg DB 13,10,"Enter transfer amount: $"
 	transferSuccessMesg DB 13,10,"Transfer successfully!$"
 	promptNextTransactionMesg DB 13, 10, "Any other transaction?(Y/N)$"
@@ -370,6 +371,7 @@ main proc
 
 ;==========Print Welcome Screen
 printWelcomeScreen:
+	NEWLINE
 	PRINTSTRING dotted1Mesg
 	PRINTSTRING printWelcomeScreenMesg
 	PRINTSTRING dotted1Mesg
@@ -546,6 +548,7 @@ loginSuccess:
 	cmp userType,2
 	je showUser2BankAccDetails
 showUser1BankAccDetails:
+	NEWLINE
 	PRINTSTRING dotted2Mesg
 	PRINTSTRING bankLogoMesg
 	PRINTSTRING dotted2Mesg
@@ -553,9 +556,9 @@ showUser1BankAccDetails:
 	PRINTSTRING user1Name
 	PRINTSTRING balanceMesg
 	call printCurrentUserBalance
-	NEWLINE
 	jmp promptSubMenuOptions
 showUser2BankAccDetails:
+	NEWLINE
 	PRINTSTRING dotted2Mesg
 	PRINTSTRING bankLogoMesg
 	PRINTSTRING dotted2Mesg
@@ -563,7 +566,6 @@ showUser2BankAccDetails:
 	PRINTSTRING user2Name
 	PRINTSTRING balanceMesg
 	call printCurrentUserBalance
-	NEWLINE
 	jmp promptSubMenuOptions
 
 ;====================================Jumper====================================
@@ -583,6 +585,7 @@ promptSubMenuOptions:
 	mov amountInputCalculated, 0
 	mov amountInputCalculatedDec, 0
 ;==================Print Sub Menu Options
+	NEWLINE
 	PRINTSTRING subMenuOptionsMesg1
 	PRINTSTRING subMenuOptionsMesg2
 	PRINTSTRING subMenuOptionsMesg3
@@ -655,7 +658,6 @@ multiplyDepositAmountInput:
 	PRINTSTRING depositSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
-	NEWLINE
     jmp promptSubMenuOptions
 
 ;==========Withdrawal Module
@@ -713,7 +715,6 @@ multiplyWithdrawalAmountInput:
 	PRINTSTRING withdrawalSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
-	NEWLINE
     jmp promptSubMenuOptions
 	
 ;==========Transfer Module
@@ -758,6 +759,8 @@ checkBackToSubMenu:
 	inc si
 	cmp [si], '$'
 	jne contCmpCurrentUser
+	NEWLINE
+	PRINTSTRING exitTrasferSuccessMesg
 	jmp promptSubMenuOptions
 checkTransferToMyselfUser1:
 	lea si, transferInput
@@ -888,9 +891,10 @@ one:
     cmp userType, 2
     je deductFromCurrentUser2
 deductFromCurrentUser1:
+	mov dx, 0
 	mov dx, user2Balance
 	add dx, amountInputConverted
-	cmp dx, 1000
+	cmp dx, 10000
 	jge invalidInputTransfer
     cmp ax, user1Balance
     jg invalidInputTransfer
@@ -923,6 +927,11 @@ noNeedBorrow1:
     PRINT4DIGIT user1BalanceDec
 	jmp finishDeductFromCurrentUser
 deductFromCurrentUser2:
+	mov dx, 0
+	mov dx, user1Balance
+	add dx, amountInputConverted
+	cmp dx, 10000
+	jge invalidInputTransfer
     cmp ax, user2Balance
     jg invalidInputTransfer
     je compareDecimal2
@@ -996,6 +1005,7 @@ printLogoutSuccess:
 
 ;==========Close Program
 promptCloseProgram:
+	NEWLINE
     lea dx, confirmCloseProgramMesg
 	mov ah, 09h
 	int 21h
