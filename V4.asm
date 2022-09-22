@@ -17,6 +17,7 @@
 	promptNewAccPwMesg DB 13,10,"Set your password: $"
 	doneRegisterMesg DB 13,10,"Your account has been created, Welcome To DLBank! $"
 	toContinueMesg DB 13,10,"Press any button to continue...$"
+	invalidRegisterPasswordMesg DB 13, 10, "Password cannot be blank!$"
 
 ;==========Login Bank Account Module Messages
 	loginTooMuchMesg DB 13,10,"Wrong input(5 times). Please try again in 3 minutes$"
@@ -398,11 +399,13 @@ cmpMainMenuOptions:
 	cmp al,'1'
 	je registerBankAccModule
 	cmp al,'2'
-	je loginBankAccountModule
-	cmp al,'3'
 	jne contCmpMainMenuOptions
-	jmp promptCloseProgram
+	jmp loginBankAccountModule
 contCmpMainMenuOptions:
+	cmp al,'3'
+	jne cont2CmpMainMenuOptions
+	jmp promptCloseProgram
+cont2CmpMainMenuOptions:
 	PRINTSTRING invalidOptionMesg
 	NEWLINE
 	jmp PromptMainMenuOptions
@@ -417,6 +420,7 @@ registerBankAccModule:
 ;====================Assign User 2 Account Number
 assignUser2AccNum:
 	mov al,[si]
+	
 	mov [di],al
 	inc si
 	inc di
@@ -427,22 +431,33 @@ assignUser2AccNum:
 	mov [si+3],al
 	PRINTSTRING user2AccNum
 ;====================Prompt New Account Password
+promptNewAccountPassword:
+	mov inputCount, 0
 	PRINTSTRING promptNewAccPwMesg
 	lea si, user2Pw
+	
 assignUser2Pw:
 	SCANCHAR
 	cmp al,13
 	je finishAssignUser2Pw
 	mov [si],al
 	inc si
+	inc inputCount
 	jmp assignUser2Pw
 finishAssignUser2Pw:
+
+	cmp inputCount, 0
+	je checkRegisterPass
     mov al, '$'
     mov [si], al
 	PRINTSTRING doneRegisterMesg
 	PRINTSTRING toContinueMesg
 	SCANCHAR
     jmp printWelcomeScreen
+
+checkRegisterPass:
+	PRINTSTRING invalidRegisterPasswordMesg
+	jmp promptNewAccountPassword
 
 ;==========Login Bank Account Module
 loginBankAccountModule:
