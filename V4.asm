@@ -221,14 +221,18 @@ addAxToBalance proc
 addToUser1:	
 	add ax, user1Balance
 	cmp ax, 2710H
-	jge invalidDepositAmountInput
+	jb contAddToUser1
+	jmp invalidDepositAmountInput
+contAddToUser1:
 	pop ax
     add user1Balance, ax
     jmp afterAddBalance
 addToUser2:
 	add ax, user2Balance
 	cmp ax, 2710H
-	jge invalidDepositAmountInput
+	jb contAddToUser2
+	jmp invalidDepositAmountInput
+contAddToUser2:
 	pop ax
     add user2Balance, ax
 afterAddBalance:    	
@@ -274,12 +278,16 @@ calculateFee proc
 		mov ax, user1Balance
 		cmp ax, amountInputCalculated
 		je compareDecIfSame ;check decimal if before decimal is same
-		jb invalidInputWithdrawalJmper1 ;if balance not enuf
+		jge contProceesSub
+		jmp invalidInputWithdrawalJmper1 ;if balance not enuf
+	contProceesSub:
 		jmp doSub; if enuf for withdrawal
 	compareDecIfSame:
 		mov ax, user1BalanceDec
 		cmp ax, amountInputCalculatedDec
-		jb invalidInputWithdrawalJmper1 ;not enuf balance
+		jge contCompareDecIfSame
+		jmp invalidInputWithdrawalJmper1 ;not enuf balance
+	contCompareDecIfSame:	
 		jmp doSub
 	takeBeforeDecimal:    
 		dec user1Balance ; take before decimal
@@ -385,12 +393,15 @@ PromptMainMenuOptions:
 	SCANCHAR
 
 ;==========Compare Main Menu Options
+cmpMainMenuOptions:
 	cmp al,'1'
 	je registerBankAccModule
 	cmp al,'2'
 	je loginBankAccountModule
 	cmp al,'3'
-	je promptCloseProgram
+	jne contCmpMainMenuOptions
+	jmp promptCloseProgram
+contCmpMainMenuOptions:
 	PRINTSTRING invalidOptionMesg
 	NEWLINE
 	jmp PromptMainMenuOptions
@@ -455,7 +466,9 @@ finishScanAccNumInput:
 	mov al,'$'
     mov [si], al
 	cmp inputCount, 0
-	je printInvalidAccNumMesg
+	jne contFinishScanAccNumInput
+	jmp printInvalidAccNumMesg
+contFinishScanAccNumInput:
 ;====================Check Account Number Input
 	lea si,accNumInput
 	lea di,user1AccNum
@@ -592,13 +605,21 @@ promptSubMenuOptions:
 ;==================Input Sub Menu Options
 	SCANCHAR
 	cmp al, '0'
-	je printLogoutSuccess
+	jne contPromptSubMenuOptions
+	jmp printLogoutSuccess
+contPromptSubMenuOptions:
 	cmp al, '1'
-	je depositModule
+	jne cont2PromptSubMenuOptions
+	jmp depositModule
+cont2PromptSubMenuOptions:
 	cmp al, '2'
-	je withdrawalModule
+	jne cont3PromptSubMenuOptions
+	jmp withdrawalModule
+cont3PromptSubMenuOptions:
 	cmp al, '3'
-	je transferModule
+	jne cont4PromptSubMenuOptions
+	jmp transferModule
+cont4PromptSubMenuOptions:
 	jmp promptSubMenuOptions
 
 ;==========Deposit Module
@@ -714,7 +735,9 @@ multiplyWithdrawalAmountInput:
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
     jmp promptSubMenuOptions
-	
+
+
+
 ;==========Transfer Module
 transferModule:
 	PRINTSTRING promptTransferBankAccountMesg
@@ -723,7 +746,9 @@ transferModule:
 promptBankAccountInput:
 	call userInputDigit
 	cmp al, '$'
-	je invalidBankAccountInput
+	jne contPromptBankAccountInput
+	jmp invalidBankAccountInput
+contPromptBankAccountInput:
 	cmp al,13
 	je cmpCurrentUser
 	mov [si], al
@@ -734,7 +759,9 @@ cmpCurrentUser:
 	mov al,'$'
 	mov [si], al
 	cmp inputCount, 0
-	je invalidBankAccountInput
+	jne cont2CmpCurrentUser
+	jmp invalidBankAccountInput
+cont2CmpCurrentUser:
 	jmp checkBackToSubMenu
 contCmpCurrentUser:
 	cmp userType, 1
@@ -743,19 +770,24 @@ contCmpCurrentUser:
 	je checkTransferToMyselfUser2
 checkBackToSubMenu:
 	lea si, transferInput
-	cmp [si], '0'
+	mov al, [si]
+	cmp al, '0'
 	jne contCmpCurrentUser
 	inc si
-	cmp [si], '0'
+	mov al, [si]
+	cmp al, '0'
 	jne contCmpCurrentUser
 	inc si
-	cmp [si], '0'
+	mov al, [si]
+	cmp al, '0'
 	jne contCmpCurrentUser
 	inc si
-	cmp [si], '0'
+	mov al, [si]
+	cmp al, '0'
 	jne contCmpCurrentUser
 	inc si
-	cmp [si], '$'
+	mov al, [si]
+	cmp al, '$'
 	jne contCmpCurrentUser
 	NEWLINE
 	PRINTSTRING exitTrasferSuccessMesg
@@ -887,15 +919,24 @@ one:
     cmp userType, 1
     je deductFromCurrentUser1
     cmp userType, 2
-    je deductFromCurrentUser2
+    jne deductFromCurrentUser1
+	jmp deductFromCurrentUser2
 deductFromCurrentUser1:
 	mov dx, 0
 	mov dx, user2Balance
 	add dx, amountInputConverted
 	cmp dx, 10000
-	jge invalidInputTransfer
+	jl contDeductFromCurrentUser1
+	jmp invalidInputTransfer
+contDeductFromCurrentUser1:
     cmp ax, user1Balance
-    jg invalidInputTransfer
+	jl cont2DeductFromCurrentUser1
+	jmp invalidInputTransfer
+cont2DeductFromCurrentUser1:
+    cmp ax, user1Balance
+    jle cont3DeductFromCurrentUser1
+	jmp invalidInputTransfer
+cont3DeductFromCurrentUser1:
     je compareDecimal1
     jmp validToTransfer1
 compareDecimal1:
@@ -904,8 +945,15 @@ compareDecimal1:
 	mov bx, 10000
 	div bx
 	cmp dx, user1BalanceDec
-	jg invalidInputTransfer
+	jle validToTransfer1
+	jmp invalidInputTransfer
 validToTransfer1:
+	mov dx, user2Balance
+	add dx, amountInputConverted
+	cmp dx, 10000
+	jl contValidToTransfer1
+	jmp invalidInputTransfer
+contValidToTransfer1:
     mov ax, amountInputConverted
     mov dx, 0
     sub user1Balance, ax 
@@ -929,9 +977,13 @@ deductFromCurrentUser2:
 	mov dx, user1Balance
 	add dx, amountInputConverted
 	cmp dx, 10000
-	jge invalidInputTransfer
+	jl contDeductFromCurrentUser2
+	jmp invalidInputTransfer
+contDeductFromCurrentUser2:
     cmp ax, user2Balance
-    jg invalidInputTransfer
+    jle cont2DeductFromCurrentUser2
+	jmp invalidInputTransfer
+cont2DeductFromCurrentUser2:
     je compareDecimal2
     jmp validToTransfer2
 compareDecimal2:
@@ -940,12 +992,15 @@ compareDecimal2:
 	mov bx, 10000
 	div bx
 	cmp dx, user2BalanceDec
-	jg invalidInputTransfer
+	jle validToTransfer2
+	jmp invalidInputTransfer
 validToTransfer2:
 	mov dx, user1Balance
 	add dx, amountInputConverted
 	cmp dx, 10000
-	jge invalidInputTransfer
+	jl contValidToTransfer2
+	jmp invalidInputTransfer
+contValidToTransfer2:
     mov ax, amountInputConverted
     mov dx, 0
     sub user2Balance, ax 
@@ -979,27 +1034,34 @@ transferToUser2:
     jmp finishTransfer
 finishTransfer:
     inc countTrf
-
-;==========Prompt Next Transaction
 promptNextTransaction:
 	NEWLINE
 	PRINTSTRING promptNextTransactionMesg
 	SCANCHAR
 	cmp al, 'y'
-	je promptSubMenuOptions
+	je promptSubMenuOptionsJumper
 	cmp al, 'Y'
-	je promptSubMenuOptions
+	je promptSubMenuOptionsJumper
 	cmp al, 'n'
 	je printLogoutSuccess
 	cmp al, 'N'
 	je printLogoutSuccess
 	jmp promptNextTransaction
 
+;====================================Jumper====================================
+printWelcomeScreenJumper:
+	jmp printWelcomeScreen
+promptSubMenuOptionsJumper:
+	jmp promptSubMenuOptions
+invalidInputTransferJumper:
+	jmp invalidInputTransfer
+;====================================Jumper====================================
+
 ;==========Print Logout Success
 printLogoutSuccess:
 	PRINTSTRING logoutSuccessMesg
 	NEWLINE
-	jmp printWelcomeScreen
+	jmp printWelcomeScreenJumper
 
 ;==========Close Program
 promptCloseProgram:
@@ -1014,9 +1076,9 @@ promptCloseProgram:
 	cmp al, 'Y'
 	je printSummary	
 	cmp al, 'n'
-	je printWelcomeScreen
+	je printWelcomeScreenJumper
 	cmp al, 'N'
-	je printWelcomeScreen
+	je printWelcomeScreenJumper
 	lea dx, invalidInputMesg
 	mov ah, 09h
 	int 21h
