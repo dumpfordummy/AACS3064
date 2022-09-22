@@ -220,16 +220,14 @@ addAxToBalance proc
     jne addToUser2
 addToUser1:	
 	add ax, user1Balance
-	add tempVar, ax
-	cmp tempVar, 2710H
+	cmp ax, 2710H
 	jge invalidDepositAmountInput
 	pop ax
     add user1Balance, ax
     jmp afterAddBalance
 addToUser2:
 	add ax, user2Balance
-	add tempVar, ax
-	cmp tempVar, 2710H
+	cmp ax, 2710H
 	jge invalidDepositAmountInput
 	pop ax
     add user2Balance, ax
