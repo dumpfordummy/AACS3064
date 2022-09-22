@@ -56,6 +56,7 @@
 
 ;==========Logout Message
 	logoutSuccessMesg DB 13,10,"Logout successfully! Thank you for using DLBank ATM.$"
+	exitSuccessMesg DB 13, 10, "Program exited successfully! Thank you for using DL Bank ATM.$"
 
 ;==========Close Program Messages
 	confirmCloseProgramMesg DB 13, 10, "Are you sure to close program?(Y/N)$"
@@ -624,7 +625,6 @@ cont4PromptSubMenuOptions:
 
 ;==========Deposit Module
 depositModule:
-    inc countDep
 	PRINTSTRING promptDepositAmountMesg
 	lea si, amountInput
     mov multiplyLoopCount, 0
@@ -677,11 +677,11 @@ multiplyDepositAmountInput:
 	PRINTSTRING depositSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
+    inc countDep
     jmp promptSubMenuOptions
 
 ;==========Withdrawal Module
 withdrawalModule:
-    inc countWdw
 	PRINTSTRING promptWithdrawalAmountMesg
 	lea si, amountInput
     mov multiplyLoopCount, 0
@@ -734,6 +734,7 @@ multiplyWithdrawalAmountInput:
 	PRINTSTRING withdrawalSuccessMesg
     PRINTSTRING balanceMesg
     call printCurrentUserBalance
+    inc countWdw
     jmp promptSubMenuOptions
 
 
@@ -1072,9 +1073,9 @@ promptCloseProgram:
 	mov ah, 01h
 	int 21h
 	cmp al, 'y'
-	je printSummary
+    je printExitMesg
 	cmp al, 'Y'
-	je printSummary	
+	je printExitMesg	
 	cmp al, 'n'
 	je printWelcomeScreenJumper
 	cmp al, 'N'
@@ -1106,7 +1107,16 @@ printSummary:
 	int 21h
 	mov ah, 02h
 	mov dl, countTrf
-	int 21h	
+	int 21h
+	mov countDep, '0'
+	mov countWdw, '0'
+	mov countTrf, '0'
+	jmp printWelcomeScreen
+
+printExitMesg:
+    lea dx, exitSuccessMesg
+    mov ah, 09h
+    int 21h
 
 	mov ah,4ch
 	int 21h
